@@ -31,8 +31,7 @@ Work down this list; take the first branch that applies to the surface you
 are running on. Do not ask the user to choose between mechanisms — the
 surface decides, and every branch ends in the same OAuth grant.
 
-1. **Claude surface with plugin support** (Claude Code, Claude desktop,
-   claude.ai, Cowork): install the Weft plugin — it bundles the MCP server
+1. **Claude Code**: install the Weft plugin — it bundles the MCP server
    and this skill set.
 
    ```
@@ -41,7 +40,13 @@ surface decides, and every branch ends in the same OAuth grant.
    ```
 
    If the plugin is already installed, stop — do not add a second manual
-   MCP connection beside it.
+   MCP connection beside it. If the user has no account, use
+   `/weft:setup THEIR_EMAIL` (Step 2), never a manual connection.
+
+   The plugin pins the production server. If the URLs in this document
+   name any host other than `https://weft.network`, you are setting up a
+   different deployment: skip the plugin and use branch 2 with this
+   document's URLs.
 
 2. **Host with an MCP configuration** (Codex, Cursor, Cline, opencode,
    OpenClaw, Hermes, VS Code, Copilot CLI, or any host speaking streamable
@@ -49,9 +54,9 @@ surface decides, and every branch ends in the same OAuth grant.
    config shapes are in [rules/hosts.md](rules/hosts.md) — copy the shape
    for the detected host; never guess a config format for an unknown host.
 
-3. **GUI host with a connectors UI** (ChatGPT, other GUI clients): the
-   human adds `https://weft.network/mcp` as a custom connector in the
-   host's Connectors/Apps settings.
+3. **GUI host with a connectors UI** (Claude desktop, claude.ai, Cowork,
+   ChatGPT, other GUI clients): the human adds `https://weft.network/mcp`
+   as a custom connector in the host's Connectors/Apps settings.
 
 4. **None of the above**: send the human to
    https://weft.network/dashboard/connect for manual instructions. Stop
@@ -63,31 +68,58 @@ appears under the user's Weft Connections and is revocable at any time.
 ## Step 2 — no account yet?
 
 OAuth signs in an account that already exists. If the user has none, ask
-for **their email address only** and create a temporary bootstrap:
+for **their email address only** — never a password — and take the ONE
+path that matches how Step 1 connected. The temporary `wbt_` credential
+every path creates is a secret: never print, echo, log, or paste it into
+the conversation. After the human claims the account, the same credential
+gains balance and fetch access — treat it like money from the start.
 
-```sh
-curl -fsS -X POST "https://weft.network/api/v1/account_bootstraps" \
-  -H "Content-Type: application/json" \
-  -d '{"email":"THEIR_EMAIL","agent_name":"YOUR_AGENT_NAME"}'
-```
+- **Plugin (branch 1):** run `/weft:setup THEIR_EMAIL`. The command
+  creates the bootstrap and stores the credential in the plugin's private
+  data without printing it. Do not add a manual MCP connection beside the
+  plugin, and do not use the shell flow below.
+- **Host with a shell:** use the CLI's bootstrap — it stores the
+  credential in a mode-0600 local file and never prints it:
 
-The response contains `temporary_api_key` (a secret `wbt_` bearer — never
-print it). Configure the MCP server as in Step 1, but send it as a static
-`Authorization: Bearer` header instead of OAuth. Claude Code example:
+  ```sh
+  npx --package @weft-labs/cli weft bootstrap --email "THEIR_EMAIL" \
+    --agent-name "YOUR_AGENT_NAME" --reason "THE_TASK"
+  ```
 
-```sh
-claude mcp add --transport http weft https://weft.network/mcp \
-  --header "Authorization: Bearer THE_TEMPORARY_KEY"
-```
+  Then either continue on the CLI, or configure the MCP server per
+  branch 2 with OAuth after the claim.
+- **Manual MCP config without the CLI (last resort):** keep the secret out
+  of the transcript — write the response to a file, show the human only
+  the non-secret fields, and pass the key by shell substitution:
+
+  ```sh
+  umask 077
+  curl -fsS -X POST "https://weft.network/api/v1/account_bootstraps" \
+    -H "Content-Type: application/json" \
+    -d '{"email":"THEIR_EMAIL","agent_name":"YOUR_AGENT_NAME"}' \
+    -o "$HOME/.weft_bootstrap.json"
+  jq '.data | del(.temporary_api_key)' "$HOME/.weft_bootstrap.json"
+  ```
+
+  Configure the MCP server as in branch 2, sending the key as a static
+  header via substitution so it never appears in the transcript — Claude
+  Code example:
+
+  ```sh
+  claude mcp add --transport http weft https://weft.network/mcp \
+    --header "Authorization: Bearer $(jq -r '.data.temporary_api_key' "$HOME/.weft_bootstrap.json")"
+  ```
+
+- **GUI host with no shell:** there is no safe bootstrap path here. Send
+  the human to https://weft.network/signup to create the account in the
+  browser, then connect with OAuth per Step 1. Do not improvise an HTTP
+  flow.
 
 A claim link goes to the email. The human approves; the same credential is
 promoted in place — search works while pending, balance and fetch unlock
 after the claim. `weft_connection_status` reports progress. There is no
 promotional balance: the human funds the wallet before the first paid
 fetch.
-
-On a persistent machine with a shell, `weft bootstrap` from the CLI
-(Step 3) is an equivalent, more automated path to the same flow.
 
 ## Step 3 — offer the CLI (only where it survives)
 

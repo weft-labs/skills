@@ -15,7 +15,8 @@ Weft is a paid-data marketplace for agents. Four tools do all the work:
   micropayment from the user's wallet. This is the only step that spends
   money. Use it to pay for the data or action the search found.
 - `weft_balance` — read-only. Shows the wallet balance and the spending
-  policy. The wallet enforces the policy — use this only for context.
+  policy. Call it before the first paid fetch of a task; the wallet still
+  enforces the policy on every call.
 - `weft_connection_status` — read-only. Reports the state of this
   connection and which tools it can currently call. Use it when a call is
   refused, or while a new account claim is still pending.
@@ -84,6 +85,12 @@ When the result set is empty, read `match_quality`, `reason`, and
 Loosen the filters or change the query and search again; it costs nothing.
 
 ### 3. Fetch to pay
+
+Before the first paid fetch of a task, call `weft_balance`. Abort and tell
+the user when the balance or the remaining transaction, daily, or weekly
+policy headroom is below the expected cost. The wallet enforces the policy
+on every call — this check exists so you never propose spend the wallet
+will refuse.
 
 Call `weft_fetch` with:
 
@@ -172,6 +179,8 @@ The wallet enforces the spending policy on every paid call. It refuses any
 request that exceeds the policy, the per-call cap, or the balance. You do
 not track budgets or compute remaining spend — the wallet does that.
 
+- Call `weft_balance` before the first paid fetch of a task; abort when
+  the balance or policy headroom is below the expected cost.
 - Set a tight `max_cost_usd` on every fetch. Never silently raise it.
 - State the expected cost before a paid call, and the actual cost after it
   (`paid_usd + held_usd`).
@@ -197,10 +206,13 @@ not track budgets or compute remaining spend — the wallet does that.
   `weft_connection_status`, and finish the claim before retrying.
 - `insufficient_scope`: tell the user Weft authorization must be renewed with
   the required scope.
-- `POLICY_VIOLATION_*`: the user exceeded their spending policy. Surface the
-  `dashboard_url` so they can adjust it. Do not retry silently.
-- `SETTLEMENT_FAILED`: the transaction is in `locked` status. Surface it and
-  stop.
+- `POLICY_VIOLATION_*`: the spending policy refused the call — a cap, a
+  spend window, a denylist, or a missing policy, not necessarily
+  overspending. Surface the `dashboard_url` so the user can adjust. Hard
+  stop; do not retry silently.
+- `SETTLEMENT_FAILED`: settlement failed upstream. The error's `protocol`
+  detail names the payment rail that failed. Surface it and stop; do not
+  retry a paid call.
 - Search validation errors: correct the request to the live tool schema and
   retry the free search.
 - Paid fetch errors or ambiguous outcomes: surface the receipt and error
