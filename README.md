@@ -5,8 +5,10 @@ web and pay any x402/MPP endpoint from a wallet the user controls.
 
 **This repo is the single source of truth.** Every other place a Weft
 skill appears — `weft.network`, the Claude plugin, the `@weft-labs/cli`
-npm package — is a mirror published from a tagged release here. Never edit
-a mirror; PR this repo and let the publish workflow fan out.
+npm package — is a byte-identical mirror pinned to one commit of this repo
+by a `SKILLS_REF` file and enforced by that consumer's CI drift check.
+Never edit a mirror. To change a skill: PR this repo, merge, then bump
+each consumer's `SKILLS_REF` and re-vendor.
 
 ## Skills
 
@@ -30,9 +32,9 @@ Or point an agent at the hosted copies:
 
 | Mirror | Mechanism |
 |---|---|
-| `weft.network/setup.md` + `/skills/weft/SKILL.md` | vendored into `weft-app`, drift-checked in its CI |
-| Claude plugin `weft-labs/weft-claude-plugin` | vendors `skills/weft/`, drift-checked in its CI |
-| `@weft-labs/cli` npm package | bundles `skills/weft/` at publish, pinned to a tag here |
+| `weft.network/setup.md` + `/skills/weft/SKILL.md` | vendored into `weft-app` at its `SKILLS_REF` commit, drift-checked in its CI |
+| Claude plugin `weft-labs/weft-claude-plugin` | vendors `skills/weft/` at its `SKILLS_REF` commit, drift-checked in its CI |
+| `@weft-labs/cli` npm package | bundles `skills/weft/` at its `SKILLS_REF` commit, drift-checked in its CI |
 
 ## License
 
