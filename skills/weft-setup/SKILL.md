@@ -83,8 +83,9 @@ gains balance and fetch access — treat it like money from the start.
 
 - **Plugin (branch 1):** run `/weft:setup THEIR_EMAIL`. The command
   creates the bootstrap and stores the credential in the plugin's private
-  data without printing it. Do not add a manual MCP connection beside the
-  plugin, and do not use the shell flow below.
+  data without printing it. It needs Claude Code 2.1.195 or newer — on an
+  older version, update Claude Code or use branch 2. Do not add a manual
+  MCP connection beside the plugin, and do not use the shell flow below.
 - **Editable-config host (branch 2) with a persistent filesystem:** use
   the CLI's bootstrap — it stores the
   credential in a mode-0600 local file and never prints it:
@@ -128,9 +129,10 @@ gains balance and fetch access — treat it like money from the start.
 
 A claim link goes to the email. The human approves; the same credential is
 promoted in place — search works while pending, balance and fetch unlock
-after the claim. `weft_connection_status` reports progress. There is no
-promotional balance: the human funds the wallet before the first paid
-fetch.
+after the claim. `weft_connection_status` reports progress. A new account
+starts with only the one-time starter grant shown at signup — enough for
+a first small paid fetch. Beyond it, the human adds money at
+https://weft.network/dashboard/wallet (card top-up or USDC deposit).
 
 ## Step 3 — offer the CLI (only where it survives)
 
@@ -171,5 +173,7 @@ said. Do not invent an API key or fall back to an unrelated config.
 - Never ask for, accept, generate, or store a password, `wk_` key, or
   OAuth token. Never print a `wbt_` credential.
 - One connection per host — plugin OR manual MCP entry, never both.
-- No promotional balance, free credit, or subsidy exists. Say so before
-  the user expects a paid fetch to work on an unfunded wallet.
+- Beyond the one-time starter grant shown at signup, no
+  promotional balance or subsidy exists. Before the user expects a paid
+  fetch to work on an unfunded wallet, say so and point them to
+  https://weft.network/dashboard/wallet to add money.

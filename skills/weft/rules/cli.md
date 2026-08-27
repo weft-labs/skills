@@ -65,8 +65,9 @@ weft auth status
 # 5. After approval the stored credential is promoted in place.
 weft me
 
-# 6. A new wallet holds nothing. Ask the human to fund it before any
-#    paid fetch.
+# 6. A new wallet holds only the one-time signup starter grant. For
+#    anything beyond it, send the human to
+#    https://weft.network/dashboard/wallet to add money.
 weft balance
 ```
 
