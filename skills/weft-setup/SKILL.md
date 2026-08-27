@@ -130,9 +130,10 @@ gains balance and fetch access — treat it like money from the start.
 A claim link goes to the email. The human approves; the same credential is
 promoted in place — search works while pending, balance and fetch unlock
 after the claim. `weft_connection_status` reports progress. A new account
-starts with only the one-time starter grant shown at signup — enough for
-a first small paid fetch. Beyond it, the human adds money at
-https://weft.network/dashboard/wallet (card top-up or USDC deposit).
+may start with a small one-time signup grant, when that campaign is
+running — check `weft_balance` rather than promising it. To add money,
+the human uses https://weft.network/dashboard/wallet (card top-up or
+USDC deposit).
 
 ## Step 3 — offer the CLI (only where it survives)
 
@@ -173,7 +174,8 @@ said. Do not invent an API key or fall back to an unrelated config.
 - Never ask for, accept, generate, or store a password, `wk_` key, or
   OAuth token. Never print a `wbt_` credential.
 - One connection per host — plugin OR manual MCP entry, never both.
-- Beyond the one-time starter grant shown at signup, no
-  promotional balance or subsidy exists. Before the user expects a paid
-  fetch to work on an unfunded wallet, say so and point them to
-  https://weft.network/dashboard/wallet to add money.
+- Beyond a possible one-time signup grant, no further
+  promotional balance or subsidy exists — `weft_balance` is the truth.
+  Before the user expects a paid fetch to work on an unfunded wallet,
+  say so and point them to https://weft.network/dashboard/wallet to add
+  money.
