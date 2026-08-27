@@ -1,6 +1,7 @@
 # Per-host MCP configuration shapes
 
-Lookup table for [Step 1, branch 2](../SKILL.md) of `weft-setup`. Server:
+Lookup table for [Step 1, branch 2](https://weft.network/setup.md) of
+`weft-setup`. Server:
 `https://weft.network/mcp`, streamable HTTP, OAuth in the browser on first
 use. Merge into existing structured config — never replace it. After any
 change, follow the host's reload step, then verify.
@@ -38,7 +39,10 @@ no `type` field needed:
 
 ## Cline
 
-Merge into `~/.cline/mcp.json` — `type` is required; omitting it falls
+Cline CLI: merge into `~/.cline/mcp.json`. The VS Code extension does
+not read that file — configure it in the Cline panel → MCP Servers
+(same JSON shape in its managed `cline_mcp_settings.json`).
+Either way `~/.cline/mcp.json` shape: — `type` is required; omitting it falls
 back to legacy `sse`, which this server does not speak:
 
 ```json

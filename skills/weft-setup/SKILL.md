@@ -39,8 +39,8 @@ surface decides, and every branch ends in the same OAuth grant.
    /plugin install weft@weft-labs
    ```
 
-   If the plugin is already installed, stop — do not add a second manual
-   MCP connection beside it. If the user has no account, use
+   If the `weft_*` tools already respond, a connection exists — stop;
+   do not add a second manual MCP connection beside it. If the user has no account, use
    `/weft:setup THEIR_EMAIL` (Step 2), never a manual connection.
 
    The plugin pins the production server. If the URLs in this document
@@ -48,22 +48,29 @@ surface decides, and every branch ends in the same OAuth grant.
    different deployment: skip the plugin and use branch 2 with this
    document's URLs.
 
-2. **Host with an MCP configuration** (Codex, Cursor, Cline, opencode,
-   OpenClaw, Hermes, VS Code, Copilot CLI, or any host speaking streamable
-   HTTP): add the hosted server `https://weft.network/mcp`. Exact per-host
+2. **Host with an MCP configuration you can edit** (Codex, Cursor, Cline,
+   opencode, OpenClaw, Hermes, VS Code, Copilot CLI, or any host speaking
+   streamable HTTP whose config you can write): add the hosted server `https://weft.network/mcp`. Exact per-host
    config shapes are in [rules/hosts.md](rules/hosts.md) — copy the shape
-   for the detected host; never guess a config format for an unknown host.
+   for the detected host; never guess a config format for an unknown host. If the host manages
+   connections through a GUI instead of an editable config, use branch 3.
 
 3. **GUI host with a connectors UI** (Claude desktop, claude.ai, Cowork,
    ChatGPT, other GUI clients): the human adds `https://weft.network/mcp`
-   as a custom connector in the host's Connectors/Apps settings.
+   as a custom connector in the host's Connectors/Apps settings. Walk the
+   human through it in plain words — typically Settings → Connectors →
+   Add custom connector, then paste the URL; that is all they need. If
+   the host's plan does not allow custom connectors, use branch 4.
 
 4. **None of the above**: send the human to
-   https://weft.network/dashboard/connect for manual instructions. Stop
-   rather than guessing.
+   https://weft.network/dashboard/connect for manual instructions (it
+   needs an account — https://weft.network/signup first if they have
+   none). Stop rather than guessing.
 
 The first tool call opens a browser sign-in; that is expected. The grant
 appears under the user's Weft Connections and is revocable at any time.
+It is account-scoped: a fresh session or a rebuilt sandbox finds it
+already connected — never redo setup.
 
 ## Step 2 — no account yet?
 
@@ -78,7 +85,8 @@ gains balance and fetch access — treat it like money from the start.
   creates the bootstrap and stores the credential in the plugin's private
   data without printing it. Do not add a manual MCP connection beside the
   plugin, and do not use the shell flow below.
-- **Host with a shell:** use the CLI's bootstrap — it stores the
+- **Editable-config host (branch 2) with a persistent filesystem:** use
+  the CLI's bootstrap — it stores the
   credential in a mode-0600 local file and never prints it:
 
   ```sh
@@ -88,7 +96,8 @@ gains balance and fetch access — treat it like money from the start.
 
   Then either continue on the CLI, or configure the MCP server per
   branch 2 with OAuth after the claim.
-- **Manual MCP config without the CLI (last resort):** keep the secret out
+- **Manual MCP config without the CLI (last resort, branch 2 with a
+  persistent filesystem only):** keep the secret out
   of the transcript — write the response to a file, show the human only
   the non-secret fields, and pass the key by shell substitution:
 
@@ -110,8 +119,10 @@ gains balance and fetch access — treat it like money from the start.
     --header "Authorization: Bearer $(jq -r '.data.temporary_api_key' "$HOME/.weft_bootstrap.json")"
   ```
 
-- **GUI host with no shell:** there is no safe bootstrap path here. Send
-  the human to https://weft.network/signup to create the account in the
+- **GUI-connected host (branch 3 or 4):** there is no safe bootstrap
+  path here, even if your own sandbox has a shell — an ephemeral
+  filesystem loses the credential with the container. Send the human to
+  https://weft.network/signup to create the account in the
   browser, then connect with OAuth per Step 1. Do not improvise an HTTP
   flow.
 
@@ -146,8 +157,11 @@ CLI credential would appear to work and then vanish with the container.
    tools appear in the next session, not this one).
 2. Call `weft_balance` — or `weft_connection_status` if a claim is still
    pending.
-3. Confirm the `weft` usage skill is discoverable. It owns everything from
-   here: searching, spending rules, receipts. Do not duplicate its content.
+3. Confirm the `weft` usage skill is discoverable — the plugin bundles
+   it; on any other surface install it from
+   https://weft.network/skills/weft/SKILL.md. It owns everything from
+   here: searching, spending rules, receipts. Do not duplicate its
+   content.
 
 If either check fails, report exactly what you changed and what the host
 said. Do not invent an API key or fall back to an unrelated config.
