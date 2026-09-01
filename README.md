@@ -18,6 +18,7 @@ each consumer's `SKILLS_REF` and re-vendor.
 | [`weft-setup`](skills/weft-setup/SKILL.md) | Connect a user's Weft Account from any surface: plugin, MCP config ([per-host shapes](skills/weft-setup/rules/hosts.md)), connector UI, or bootstrap a new account. | One-shot; fetched, executed, discarded |
 | [`weft-flights-search`](skills/weft-flights-search/SKILL.md) | Experimental Weft-powered flight research with route, schedule, fare, nearby-airport, and ground-transfer evidence. | Experimental outcome workflow |
 | [`weft-gtm-lead-enrichment`](skills/weft-gtm-lead-enrichment/SKILL.md) | Enrich a LinkedIn profile, find or verify a work email, or retrieve a social newsfeed through OneShot Agent. | Optional workflow; experimental |
+| [`polymarket-research`](skills/polymarket-research/SKILL.md) | Turn one Polymarket link into a read-only, cited brief about the settlement contract, current market, and outside evidence. | Optional outcome workflow; experimental |
 
 Each skill also has a README with its reproducible benchmark status:
 
@@ -37,6 +38,7 @@ Install an optional workflow separately:
 ```sh
 npx skills add weft-labs/skills --skill weft-flights-search
 npx skills add weft-labs/skills --skill weft-gtm-lead-enrichment
+npx skills add weft-labs/skills --skill polymarket-research
 ```
 
 Use the space-separated `--skill <name>` form. Do not use

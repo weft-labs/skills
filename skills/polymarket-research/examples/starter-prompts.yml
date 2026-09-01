@@ -1,0 +1,23 @@
+version: 1
+prompts:
+  - title: Research a news-driven market
+    prompt: >-
+      Build a thorough, read-only research brief for this Polymarket link:
+      <market URL>. Explain the exact settlement contract, current market and
+      liquidity state, recent primary-source news, the strongest YES and NO
+      cases, unknowns, and next catalysts. Use parallel research lanes when
+      available. Cite and timestamp every material claim. Do not place a trade.
+  - title: Audit a company-event contract
+    prompt: >-
+      Audit this company or financial Polymarket market: <market URL>. Start
+      with the official rules and named resolver, then check filings, investor
+      relations, current market data, and reputable reporting. Flag threshold,
+      deadline, fallback-source, and liquidity risks. Return evidence for both
+      outcomes and no BUY or SELL instruction.
+  - title: Check a sports market
+    prompt: >-
+      Research this sports Polymarket link: <market URL>. Verify the selected
+      leg, official competition rules, schedule and current game state, relevant
+      lineup, injury, form, and weather evidence, plus the market bid, ask,
+      spread, and depth. Explain cancellation, postponement, tie, and fallback
+      data rules. Cite sources and do not place a trade.
