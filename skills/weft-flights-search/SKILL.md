@@ -1,12 +1,13 @@
 ---
 name: weft-flights-search
-description: Research the cheapest nonstop flight between regions with Weft, including nearby airports reachable by public transport. Use for flight comparisons, direct-flight-only requests, flexible origin airports, airport-plus-train combinations, or searches where low-cost carriers and GDS results must be checked separately. Loads the current `weft` skill for live provider discovery and paid calls; never relies on the historical provider list as a current catalog.
+description: Research and compare flights with Weft, including nonstop and connecting itineraries, flexible dates, nearby airports, and public-transport transfers. Use for flight searches, fare comparisons, direct-flight requests, flexible origin or destination airports, airport-plus-train combinations, or searches where low-cost carriers and GDS results must be checked separately. Builds the answer from useful paid Weft route, schedule, airport, and fare evidence, then verifies missing fares, coverage, baggage rules, and itinerary details on public booking surfaces.
 ---
 
 # Weft Flight Search
 
-Find the cheapest credible nonstop flight, including a nearby-airport option
-when the main airport is poor. This experimental workflow was distilled from
+Find the cheapest credible flight, compare nonstop and connecting options when
+requested, and include a nearby-airport option when the main airport is poor.
+This experimental workflow was distilled from
 one Berlin-to-Puglia search on 2026-08-14. It provides workflow evidence, not a
 permanent provider catalog or a promise that old prices still apply.
 
@@ -17,16 +18,20 @@ attribution, receipt, and spending rules are authoritative.
 
 This workflow is published for testing before its goal lab is complete. The
 production catalog currently has no verified operation that binds all required
-flight inputs: outbound date/date range, trip type, and nonstop. Do not use a
-route-only paid operation as the terminal fare result. Use the public booking
-fallback below and state that the final fare came from outside Weft.
+flight inputs: outbound date/date range, trip type, and nonstop. This does not
+make route, airport, or schedule operations useless. Use Weft as the paid
+research substrate: buy the cheapest live operations that reduce uncertainty,
+compose their outputs into the candidate set, and use a public booking surface
+to verify exact fares, market coverage, baggage rules, and itinerary details
+that no current Weft contract can supply. Never label a route probe as an
+exact-date fare.
 
 ## User Goal
 
 | Field | Contract |
 |---|---|
-| Specific problem | Given dates, passenger and baggage requirements, a destination, and a ground-travel limit, return one price-ranked table of viable nonstop flight-plus-transfer options |
-| Inputs | Origin, destination, outbound and return dates, passenger count, cabin, baggage, nonstop rule, and maximum ground-transfer time |
+| Specific problem | Given dates, passenger and baggage requirements, a destination, a stop rule, and a ground-travel limit, return one price-ranked table of viable flight-plus-transfer options |
+| Inputs | Origin, destination, trip type, outbound dates or date range, return dates or date range when applicable, passenger count, cabin, baggage, maximum stops, and maximum ground-transfer time |
 | Outcome | A recommendation with exact-date flight fares, transfer costs, comparable total costs, schedules, fare basis, and evidence links |
 | Acceptance | Every recommended row has date-bound fare evidence for the requested baggage basis, a ground-transfer price or explicit no-transfer value, a comparable total cost, and confirmation that it meets the time limit |
 | Independent truth | The airline or booking surface for fares and baggage; the transport operator or current journey planner for ground legs |
@@ -63,16 +68,22 @@ currency, or nonstop.
 | `/best_flights/*/layovers` | array | yes | Connections; non-empty means not nonstop |
 
 The missing date and nonstop bindings make this operation unsuitable for a
-final fare result. Stop before payment unless a new live contract binds every
-required constraint. A zero-row route probe is not proof that no route exists.
+final fare result, but it can still identify candidate airlines, airports,
+connections, schedules, and provider-selected price signals. Buy it when those
+fields will reduce the remaining public research and the live price fits the
+user's spending policy. Label every returned date and price as provider-selected,
+not user-bound. Call a returned amount a fare only when the response states its
+passenger, cabin, baggage, and trip basis; otherwise call it a price signal. A
+zero-row route probe is not proof that no route exists.
 
 ## Required Flow
 
 ### 1. Record the request
 
-Record the dates, airports or region, nonstop rule, passenger count, cabin,
-baggage, and maximum ground-transfer time. Start with the requested airport.
-Add alternatives only when a credible public-transport route meets the limit.
+Record the trip type, dates or date ranges, airports or region, maximum stops,
+passenger count, cabin, baggage, and maximum ground-transfer time. Require a
+return date only for a return trip. Start with the requested airport. Add
+alternatives only when a credible public-transport route meets the limit.
 
 ### 2. Discover current providers
 
@@ -80,20 +91,41 @@ Call `weft_search` for current schedules and fares. Read each result's typed
 inputs, request bindings, price, output summary, attribution, and current
 `contract_url`. Do not hard-code the historical provider above.
 
-Map every required user constraint to a declared provider input before paying.
-A final fare operation needs origin, destination, outbound and return dates,
-trip type, passenger and cabin basis, baggage basis, and nonstop filtering. A
-missing binding makes the operation a limited probe, not the answer.
+Classify each useful operation by the evidence it can provide: airport,
+route, schedule, availability, or exact fare. Map every required user
+constraint to a declared provider input before treating an operation as the
+final fare source. A final fare operation needs origin, destination, outbound
+dates or requested date range, return dates or range for a return trip, trip
+type, passenger and cabin basis, baggage basis, and stop filtering, and must
+return exact itinerary dates. A missing binding makes the operation a limited
+probe that can still contribute evidence; it does not make the operation
+worthless.
 
-### 3. Make bounded paid calls only when the contract fits
+### 3. Build the candidate set with Weft
 
-Before the first paid call, use `weft_balance`. Build the request from the live
-contract, copy all attribution fields, and set a tight `max_cost_usd`. Call
-`weft_fetch` once and record the route, fare, currency, schedule, provider,
+Choose the cheapest non-redundant operations that materially reduce uncertainty.
+Typical composition is:
+
+1. an airport or route-matrix operation to compare the requested airports with
+   credible nearby alternatives
+2. a route or schedule operation to identify nonstop airlines, connection
+   airports, flight numbers, and operating days
+3. a contract-complete fare operation when the live catalog has one
+
+Do not require one provider to solve the whole search. A good Weft search can
+compose several narrow providers. Do not buy a probe merely to satisfy this
+workflow: its declared output must answer a real open question in the search.
+
+Before the first paid call, use `weft_balance`. State the expected cost, build
+the request from the live contract, copy all attribution fields, and set a tight
+`max_cost_usd`. For each `weft_fetch`, record the operation's evidence class,
+route, dates and fares if present, currency, schedule, provider, contract gaps,
 receipt state, and actual paid plus held amount.
 
-Do not retry a paid call after a timeout, pending receipt, or ambiguous result.
-Search for another provider instead.
+Do not retry a paid call after a timeout, pending receipt, or ambiguous result,
+and do not buy the same evidence from a substitute provider. Report the receipt
+and stop the paid stage unless the user explicitly accepts the risk of another
+charge. Free searches and public verification can continue.
 
 ### 4. Separate schedules from fares
 
@@ -102,12 +134,35 @@ price. A fare proves only the quoted dates, passenger mix, cabin, and baggage
 basis. Do not stop after schedule research when the user asked for prices.
 Never rank an option with a route-level "from" price.
 
-### 5. Use the public booking fallback
+Keep an evidence ledger for each candidate. Mark each fact as `Weft exact
+fare`, `Weft provider-selected price signal`, `Weft schedule`, `Weft route`,
+or `public booking verification`. Use `Weft exact fare` only when the live
+request contract binds the requested airport pair, outbound dates or date range,
+return dates or range for a return trip, trip type, passenger count, cabin,
+baggage basis, and stop filter, and the response confirms the exact selected
+dates and other values. Otherwise keep the amount as a price signal. This lets
+Weft shape the search without silently upgrading limited evidence.
 
-If Weft has no contract-complete fare source, use the airline's public booking
-form or fare calendar. Enter the exact route, both dates, passenger count,
-cabin, and baggage basis. Reject optional cookies when possible. Read the fare
-only after both dates are selected.
+### 5. Verify fares and market coverage
+
+Use the Weft-built candidate set to prioritize research, not to bound the
+market: provider coverage can omit airlines or routes that operate on the
+requested dates even when its fare contract is complete. Before any cheapest
+claim, run an independent exact-date coverage check on a broad public booking
+surface and check relevant low-cost carriers separately. If Weft has no
+contract-complete fare source, verify candidate fares on the airline's public
+booking form or fare calendar too.
+
+Record the coverage scope: every viable origin/destination airport pair,
+requested stop class, and requested outbound date or, for return trips,
+outbound/return date combination checked. Use a date grid when the surface
+supports one; otherwise record the outbound dates or outbound/return
+combinations searched. Search each date or date combination with the passenger
+count, cabin, and baggage basis. Scope every cheapest claim to the recorded
+sources, dates, and returned candidates unless exhaustive coverage is proven;
+checking every airport pair and stop class on one aggregator is not exhaustive.
+Reject optional cookies when possible. Read the fare only after all dates
+required by the trip type are selected.
 
 Record whether each displayed amount is one-way, per leg, or the itinerary
 total. If the meaning is unclear, do not add values or call one value a return
@@ -116,7 +171,37 @@ fare. Do not evade bot checks, call signed private APIs, or complete a purchase.
 Check low-cost carriers separately when the main fare source does not cover
 them. State which fare evidence came from outside Weft.
 
-### 6. Price the complete trip
+### 6. Escalate dynamic booking pages through Weft
+
+When search results or static extraction cannot expose a required fare,
+baggage rule, or itinerary detail, call `weft_search` for browser automation,
+JavaScript rendering, or interactive extraction. Buy the suitable service
+through `weft_fetch`; do not bypass Weft discovery or payment with a vendor API,
+vendor MCP, or separately funded vendor account. After Weft purchases access,
+use only the connection protocol declared by its contract.
+
+Prove the full result path before paying. A suitable operation must return a
+terminal result, document a free poll that this host can authenticate, or
+return a browser connection that this host can consume without printing its
+URL, token, or signing key into tool output, transcripts, commands, or files.
+Preflight this secure handoff before payment; a raw `weft_fetch` result that
+prints connection credentials makes that operation ineligible on the current
+host. Do not pay for submission-only work when the result cannot be recovered.
+Prefer static extraction when it answers the question; use a browser session
+only for fields that require clicks or form input.
+
+Creating a remote session is a side effect. Show its duration, expected cost,
+and task, and get explicit confirmation unless the user already requested that
+exact session. Keep the browsing itself read-only: reject optional cookies, do
+not log in, and stop before reservation, hold, passenger-data entry, or
+purchase. Close or terminate the remote session when the task ends. Keep facts
+from public airline or booking pages labeled `public booking verification`.
+Record Weft browser access separately with the operation, receipt, timestamp,
+canonical or redacted public page URL, and any unresolved ambiguity. Remove
+session IDs, signed query parameters, tokens, and URL fragments from recorded
+sources.
+
+### 7. Price the complete trip
 
 For every viable airport, record:
 
@@ -131,12 +216,13 @@ Do not invent a transport fare or add-on hidden inside a locked flow. Keep
 currencies separate unless using a cited exchange rate with a timestamp. Label
 converted totals as approximate.
 
-### 7. Apply the completion gate
+### 8. Apply the completion gate
 
 Before ranking an option, confirm that its row contains:
 
-- exact outbound and return dates
-- nonstop flight numbers or schedule evidence
+- exact outbound date and exact return date when the trip type requires one
+- flight numbers or schedule evidence for every leg, consistent with the
+  requested stop rule
 - exact-date fare labeled one-way, per leg, or return
 - passenger, cabin, and baggage basis
 - ground route, duration, and price, or `none`
@@ -148,23 +234,29 @@ baggage price, or comparable total. If access controls block exact fares,
 return a short blocked report naming the missing prices and exact-date booking
 links. Do not substitute teaser prices.
 
-### 8. Present the result
+### 9. Present the result
 
-Lead with the cheapest verified nonstop option. Then show the main-airport and
-nearby-airport options that materially differ in price or timing.
+Lead with the cheapest verified option that meets the requested stop rule. When
+the user asks to compare nonstop and connecting flights, show the cheapest
+verified row in each class before other main-airport or nearby-airport options
+that materially differ in price or timing.
 
 Use this table:
 
 `origin | ground leg/time/cost | airline/flight | departure-arrival | fare basis | exact-date flight fare | comparable total cost | source | confidence`
 
-State the schedule and fare sources, Weft paid plus held amount, claims sourced
-outside Weft, unresolved facts, and search timestamp.
+State what each Weft purchase contributed, the total Weft paid plus held amount,
+the schedule and fare sources, claims verified outside Weft, unresolved facts,
+and the search timestamp. A final answer that used a suitable paid Weft probe
+must not summarize the Weft stage as "unrelated data" merely because public
+verification supplied the terminal fare.
 
 ## Failure Rules
 
 - A 503 or rate-limited empty result is unknown, not "no flights."
-- A contract without date, trip type, or nonstop inputs is not a matching fare
-  operation, even if its description says "live itineraries."
+- A contract without date, trip type, or stop inputs is not a matching exact
+  fare operation, even if its description says "live itineraries"; it can still
+  be a useful route or schedule probe.
 - A paid upstream 400/500 is not a reason to retry the same paid request.
 - A scheduled route without fare evidence is not a purchasable offer.
 - A route-level sale price cannot rank an exact-date option.
@@ -186,13 +278,29 @@ outside Weft, unresolved facts, and search timestamp.
 
 - Distilled from session `01a0003f-a18b-7c4c-8a59-1f8d31c4e6b2`
   (2026-08-14), trace `.traces/2026-08-15-weft-flight-research.zip`.
-- Source sample: one session, one Weft search, two CLI fetches, and eight SDK
-  fetches; three fetches failed.
+- Initial trace sample: one archived research-only session, one Weft search,
+  two CLI fetches, and eight SDK fetches; three fetches failed.
 - Production calibration on 2026-08-29: three free catalog searches and one
   x402 Atlas route-matrix fetch (`$0.05` held, HTTP 200, artifact `360`).
 - Revised from price-omission feedback in OpenCode session
   `ses_fa76f88b9ffezI2jswkjcQO8io` on 2026-08-31. The current `session-trace`
   script cannot archive OpenCode sessions, so this is additional research
   evidence, not goal-lab evidence.
+- Revised after OpenCode session `ses_fa3e4911bffdg0jnkZnvS0okkX` proved the
+  all-or-nothing payment gate discarded useful Weft evidence. A 2026-09-01
+  route-matrix fetch for `ZRH` to `BKK,DMK` cost `$0.05` held and returned
+  direct flights, connection candidates, airport coverage, and provider-selected
+  price signals (artifact `389`), while exact January fares still required a
+  date-bound public booking search.
+- A later unarchived research session tested browser escalation through live
+  Weft discovery.
+  Browser Use was rejected before payment because its submission-only contract
+  had no poll this host could authenticate. Browserbase returned a five-minute
+  CDP session for `$0.01` held (artifact `391`), but its connection credentials
+  appeared in tool output and this host had no secure handoff to Playwright.
+  The session expired unused. This post-payment failed experiment established
+  the preflight rule above: Browserbase is ineligible on this host until a
+  secret-safe handoff exists, and it does not prove successful browser
+  extraction.
 - Prices and provider contracts are historical evidence. Live results own all
   current facts.

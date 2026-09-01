@@ -16,7 +16,7 @@ each consumer's `SKILLS_REF` and re-vendor.
 |---|---|---|
 | [`weft`](skills/weft/SKILL.md) | Find and buy paid data, APIs, and real-world actions: the search → choose → fetch loop, receipts, spending safety. [`rules/cli.md`](skills/weft/rules/cli.md) adds the machine-local CLI surface. | Installed; persists on the host |
 | [`weft-setup`](skills/weft-setup/SKILL.md) | Connect a user's Weft Account from any surface: plugin, MCP config ([per-host shapes](skills/weft-setup/rules/hosts.md)), connector UI, or bootstrap a new account. | One-shot; fetched, executed, discarded |
-| [`weft-flights-search`](skills/weft-flights-search/SKILL.md) | Experimental exact-date nonstop flight and ground-transfer price comparison. | Experimental outcome workflow |
+| [`weft-flights-search`](skills/weft-flights-search/SKILL.md) | Experimental Weft-powered flight research with route, schedule, fare, nearby-airport, and ground-transfer evidence. | Experimental outcome workflow |
 | [`weft-gtm-lead-enrichment`](skills/weft-gtm-lead-enrichment/SKILL.md) | Enrich a LinkedIn profile, find or verify a work email, or retrieve a social newsfeed through OneShot Agent. | Optional workflow; experimental |
 
 ## Install
