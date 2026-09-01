@@ -3,13 +3,13 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Audit https://example.com for a small team that wants more qualified organic traffic. Do not spend money and do not make live external calls. Give me the five highest-priority actions, the evidence you can and cannot establish, and a report format that another agent can fill after inspection.",
-      "expected_output": "A free-only, evidence-led audit plan that separates observation from inference, avoids unsupported claims, prioritizes concrete actions, and reports zero spend plus missing external evidence.",
+      "prompt": "Audit https://example.com for a small team that wants more qualified organic traffic. Do not spend money and do not make live external calls. Give me the five highest-priority checks or actions, the evidence you can and cannot establish, and a report format that another agent can fill after inspection. Label the priorities as a future inspection sequence, not as findings about this site.",
+      "expected_output": "A free-only, evidence-led inspection plan that separates observation from inference, avoids unsupported site findings, prioritizes concrete checks or actions, and reports zero spend plus missing external evidence.",
       "files": [],
       "expectations": [
         "The response states that no paid provider call was made and reports zero Weft spend.",
         "The response separates observed facts, provider evidence, and inference instead of claiming unobserved rankings, traffic, search volume, backlinks, or performance.",
-        "The response gives five concrete priorities with evidence, expected impact, effort, confidence, and a completion test.",
+        "The response gives five concrete prioritized checks or actions with evidence, expected impact, effort, confidence, and a completion test, and does not present them as established site findings.",
         "The response names important external evidence gaps and describes them as capabilities rather than hard-coding a provider or price.",
         "The response does not promise ranking or indexing and does not recommend meta keywords or special AI-only markup."
       ]
@@ -23,8 +23,8 @@
         "The response translates the decision into separate capability searches with geography, language, freshness, and required output fields.",
         "The response says to load the current weft skill and use live weft_search results instead of a remembered provider catalog.",
         "The response rejects operations whose typed inputs or request bindings omit a material constraint and chooses the cheapest exact contract.",
-        "The response calls for weft_balance before the first paid fetch, a tight max_cost_usd, copied attribution, one paid call, and no automatic retry after an ambiguous outcome.",
-        "The response reports actual cost as paid_usd + held_usd and preserves provider, query, timestamp, receipt state, and sample limits."
+        "The response calls for weft_balance before the first paid fetch, a tight max_cost_usd, copied attribution, one paid call per selected exact contract, and no automatic retry after an ambiguous outcome.",
+        "The response reports actual cost as paid_usd + held_usd and preserves provider, operation, query, timestamp, receipt state, and sample limits."
       ]
     }
   ]

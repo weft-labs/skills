@@ -102,15 +102,21 @@ Choose the cheapest exact contract. Prefer better relevance only when price is
 equal, or when its declared freshness, geography, coverage, or output is needed
 for the user's decision.
 
-### 5. Make one bounded paid call
+### 5. Make one bounded paid call per selected contract
 
 Call `weft_balance` before the first paid fetch. Stop when balance or policy
 headroom is below the expected cost. State the provider, operation, purpose,
 expected price, inputs, and evidence it should return.
 
+Repeat discovery and selection only for evidence gaps that can change the
+decision. Each selected exact contract permits one `weft_fetch`; this is not a
+one-purchase limit for the whole report. Before every paid call, state that
+call's expected cost and prefer one contract that closes several gaps over
+several overlapping purchases.
+
 Build the request from the live contract. Copy its attribution fields. Set a
 tight `max_cost_usd` on every `weft_fetch`; never silently raise it. Make the
-smallest useful request and call it once.
+smallest useful request and call that selected contract once.
 
 Do not retry a paid call after a timeout, pending receipt, or ambiguous result.
 Do not automatically retry any paid fetch. Search for a substitute provider or

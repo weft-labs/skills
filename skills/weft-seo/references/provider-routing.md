@@ -41,6 +41,10 @@ Before `weft_fetch`, record:
 purpose | provider | operation | required inputs | expected output | indexed price | max_cost_usd
 ```
 
+One selected exact contract permits one paid call. A report can use more than
+one selected contract when separate evidence gaps can change the decision, but
+state the expected cost before each call and avoid overlapping purchases.
+
 After `weft_fetch`, add:
 
 ```text

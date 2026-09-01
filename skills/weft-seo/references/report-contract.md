@@ -67,12 +67,13 @@ in the current Weft search.
 
 ## 6. Evidence And Spend Ledger
 
-| Claim or dataset | Source/provider | Query or URL | Scope and timestamp | Receipt state | Paid | Held |
-|---|---|---|---|---|---:|---:|
+| Claim or dataset | Source/provider | Operation | Query or URL | Scope and timestamp | Receipt state | Paid | Held |
+|---|---|---|---|---|---|---:|---:|
 
 For direct target inspection, use `direct observation` and `$0`. For user data,
 use `user supplied` and describe its date range. For bought data, preserve the
 provider and operation from live attribution plus safe receipt identifiers.
+Use `not applicable` for the operation on free and user-supplied rows.
 
 Close with:
 
