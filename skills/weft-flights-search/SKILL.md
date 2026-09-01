@@ -1,6 +1,6 @@
 ---
 name: weft-flights-search
-description: Research and compare flights with Weft, including nonstop and connecting itineraries, flexible dates, nearby airports, and public-transport transfers. Use for flight searches, fare comparisons, direct-flight requests, flexible origin or destination airports, airport-plus-train combinations, or searches where low-cost carriers and GDS results must be checked separately. Builds the answer from useful paid Weft route, schedule, airport, and fare evidence, then fills only the missing exact-fare fields from public booking surfaces.
+description: Research and compare flights with Weft, including nonstop and connecting itineraries, flexible dates, nearby airports, and public-transport transfers. Use for flight searches, fare comparisons, direct-flight requests, flexible origin or destination airports, airport-plus-train combinations, or searches where low-cost carriers and GDS results must be checked separately. Builds the answer from useful paid Weft route, schedule, airport, and fare evidence, then verifies missing fares, coverage, baggage rules, and itinerary details on public booking surfaces.
 ---
 
 # Weft Flight Search
@@ -22,8 +22,9 @@ flight inputs: outbound date/date range, trip type, and nonstop. This does not
 make route, airport, or schedule operations useless. Use Weft as the paid
 research substrate: buy the cheapest live operations that reduce uncertainty,
 compose their outputs into the candidate set, and use a public booking surface
-only for exact fare fields that no current Weft contract can supply. Never label
-a route probe as an exact-date fare.
+to verify exact fares, market coverage, baggage rules, and itinerary details
+that no current Weft contract can supply. Never label a route probe as an
+exact-date fare.
 
 ## User Goal
 
@@ -148,9 +149,10 @@ option, run an independent exact-date coverage check on a broad public booking
 surface and check relevant low-cost carriers separately. Record the coverage
 scope: every viable origin/destination airport pair and every requested stop
 class checked. Search each pair with both dates, passenger count, cabin, and
-baggage basis. If any pair or stop class remains unchecked, qualify every
-cheapest claim as limited to the recorded scope. Reject optional cookies when
-possible. Read the fare only after both dates are selected.
+baggage basis. Scope every cheapest claim to the recorded sources and returned
+candidates unless exhaustive coverage is proven; checking every airport pair
+and stop class on one aggregator is not exhaustive. Reject optional cookies
+when possible. Read the fare only after both dates are selected.
 
 Record whether each displayed amount is one-way, per leg, or the itinerary
 total. If the meaning is unclear, do not add values or call one value a return
@@ -286,8 +288,9 @@ verification supplied the terminal fare.
   had no poll this host could authenticate. Browserbase returned a five-minute
   CDP session for `$0.01` held (artifact `391`), but its connection credentials
   appeared in tool output and this host had no secure handoff to Playwright.
-  The session expired unused. This is failed-preflight evidence: Browserbase is
-  ineligible on this host until a secret-safe handoff exists, and it does not
-  prove successful browser extraction.
+  The session expired unused. This post-payment failed experiment established
+  the preflight rule above: Browserbase is ineligible on this host until a
+  secret-safe handoff exists, and it does not prove successful browser
+  extraction.
 - Prices and provider contracts are historical evidence. Live results own all
   current facts.
