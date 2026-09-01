@@ -214,6 +214,12 @@ for path in skill_files:
                             isinstance(value, str) for value in item["files"]
                         ):
                             errors.append(f"{entry}: files must be a list of strings")
+                        else:
+                            for value in item["files"]:
+                                if not (path.parent / value).is_file():
+                                    errors.append(
+                                        f"{entry}: missing input file `{value}`"
+                                    )
                         if (
                             not isinstance(item["expectations"], list)
                             or not item["expectations"]

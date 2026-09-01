@@ -3,13 +3,18 @@
   "evals": [
     {
       "id": 1,
-      "prompt": "Audit https://example.com for a small team that wants more qualified organic traffic. Do not spend money and do not make live external calls. Give me the five highest-priority checks or actions, the evidence you can and cannot establish, and a report format that another agent can fill after inspection. Label the priorities as a future inspection sequence, not as findings about this site.",
-      "expected_output": "A free-only, evidence-led inspection plan that separates observation from inference, avoids unsupported site findings, prioritizes concrete checks or actions, and reports zero spend plus missing external evidence.",
-      "files": [],
+      "prompt": "Audit the attached offline LoomPay site fixture for a small team that wants more qualified organic traffic. Do not spend money and do not make live external calls. Give me the five highest-priority actions based only on the supplied files. Separate observed findings from inference, state what the fixture cannot establish, and include the evidence and zero-spend ledger.",
+      "expected_output": "A free-only audit that cites observed fixture facts, separates inference and unknowns, gives five evidence-led actions, and reports zero spend plus missing external evidence.",
+      "files": [
+        "evals/files/site-fixture/index.html",
+        "evals/files/site-fixture/pricing.html",
+        "evals/files/site-fixture/robots.txt",
+        "evals/files/site-fixture/sitemap.xml"
+      ],
       "expectations": [
         "The response states that no paid provider call was made and reports zero Weft spend.",
         "The response separates observed facts, provider evidence, and inference instead of claiming unobserved rankings, traffic, search volume, backlinks, or performance.",
-        "The response gives five concrete prioritized checks or actions with evidence, expected impact, effort, confidence, and a completion test, and does not present them as established site findings.",
+        "The response gives five concrete actions with cited fixture evidence, expected impact, effort, confidence, and a completion test, without extending fixture findings to the live site.",
         "The response names important external evidence gaps and describes them as capabilities rather than hard-coding a provider or price.",
         "The response does not promise ranking or indexing and does not recommend meta keywords or special AI-only markup."
       ]
