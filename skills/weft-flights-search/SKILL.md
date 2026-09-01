@@ -159,7 +159,36 @@ fare. Do not evade bot checks, call signed private APIs, or complete a purchase.
 Check low-cost carriers separately when the main fare source does not cover
 them. State which fare evidence came from outside Weft.
 
-### 6. Price the complete trip
+### 6. Escalate dynamic booking pages through Weft
+
+When search results or static extraction cannot expose a required fare,
+baggage rule, or itinerary detail, call `weft_search` for browser automation,
+JavaScript rendering, or interactive extraction. Buy the suitable service
+through `weft_fetch`; do not bypass Weft discovery or payment with a vendor API,
+vendor MCP, or separately funded vendor account. After Weft purchases access,
+use only the connection protocol declared by its contract.
+
+Prove the full result path before paying. A suitable operation must return a
+terminal result, document a free poll that this host can authenticate, or
+return a browser connection that this host can consume without printing its
+URL, token, or signing key into tool output, transcripts, commands, or files.
+Preflight this secure handoff before payment; a raw `weft_fetch` result that
+prints connection credentials makes that operation ineligible on the current
+host. Do not pay for submission-only work when the result cannot be recovered.
+Prefer static extraction when it answers the question; use a browser session
+only for fields that require clicks or form input.
+
+Creating a remote session is a side effect. Show its duration, expected cost,
+and task, and get explicit confirmation unless the user already requested that
+exact session. Keep the browsing itself read-only: reject optional cookies, do
+not log in, and stop before reservation, hold, passenger-data entry, or
+purchase. Close or terminate the remote session when the task ends. Add
+recovered facts to the evidence ledger as `Weft browser verification`, with the
+operation, a canonical or redacted public page URL, timestamp, receipt, and any
+unresolved ambiguity. Remove session IDs, signed query parameters, tokens, and
+URL fragments from recorded sources.
+
+### 7. Price the complete trip
 
 For every viable airport, record:
 
@@ -174,7 +203,7 @@ Do not invent a transport fare or add-on hidden inside a locked flow. Keep
 currencies separate unless using a cited exchange rate with a timestamp. Label
 converted totals as approximate.
 
-### 7. Apply the completion gate
+### 8. Apply the completion gate
 
 Before ranking an option, confirm that its row contains:
 
@@ -192,7 +221,7 @@ baggage price, or comparable total. If access controls block exact fares,
 return a short blocked report naming the missing prices and exact-date booking
 links. Do not substitute teaser prices.
 
-### 8. Present the result
+### 9. Present the result
 
 Lead with the cheapest verified option that meets the requested stop rule. When
 the user asks to compare nonstop and connecting flights, show the cheapest
@@ -250,5 +279,13 @@ verification supplied the terminal fare.
   direct flights, connection candidates, airport coverage, and provider-selected
   price signals (artifact `389`), while exact January fares still required a
   date-bound public booking search.
+- The same session tested browser escalation through live Weft discovery.
+  Browser Use was rejected before payment because its submission-only contract
+  had no poll this host could authenticate. Browserbase returned a five-minute
+  CDP session for `$0.01` held (artifact `391`), but its connection credentials
+  appeared in tool output and this host had no secure handoff to Playwright.
+  The session expired unused. This is failed-preflight evidence: Browserbase is
+  ineligible on this host until a secret-safe handoff exists, and it does not
+  prove successful browser extraction.
 - Prices and provider contracts are historical evidence. Live results own all
   current facts.
