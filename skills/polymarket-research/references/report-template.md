@@ -8,8 +8,9 @@ before narrative background.
 
 - **Canonical market:** [linked URL]
 - **Selected outcome or leg:** [label]
-- **Observed:** [UTC timestamp]
-- **Evidence cutoff:** [UTC timestamp set after the last accepted retrieval or live observation]
+- **Market observed:** [UTC timestamp, or historical state unavailable]
+- **Evidence cutoff:** [current-run cutoff, or user-supplied historical source-availability cutoff]
+- **Research retrieval completed:** [UTC timestamp]
 - **Research depth:** [quick or thorough; number of independent lanes]
 - **Data-health grade:** [A–D and one-line reason]
 - **Status:** [open, closed, proposed, disputed, resolved, or unknown]

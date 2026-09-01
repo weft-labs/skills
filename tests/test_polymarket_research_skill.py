@@ -65,6 +65,15 @@ class PolymarketResearchSkillTest(unittest.TestCase):
         text = self.read("SKILL.md")
         self.assertIn("Set the evidence cutoff after the last accepted retrieval", text)
         self.assertIn("less than or equal to the evidence cutoff", text)
+        self.assertIn("Historical cutoff mode", text)
+        self.assertIn(
+            "Retrieval time can be later than a user-supplied historical cutoff",
+            text,
+        )
+        self.assertIn(
+            "Do not present a current market snapshot as historical market state",
+            text,
+        )
 
     def test_market_contract_and_research_lanes_are_required(self):
         text = self.read("SKILL.md")

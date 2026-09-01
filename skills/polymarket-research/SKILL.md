@@ -40,9 +40,10 @@ Record at the start:
 - whether the user wants a probability range or only an evidence brief;
 - any prior report supplied for refresh mode.
 
-Do not use the research start as the evidence cutoff. Set the evidence cutoff
-only during final reconciliation, after the last source retrieval or live-market
-observation that the report accepts.
+For a current report, do not use the research start as the evidence cutoff. Set
+the cutoff only during final reconciliation, after the last source retrieval or
+live-market observation that the report accepts. Use Historical cutoff mode when
+the user asks what was knowable as of a past date.
 
 Use `quick` when the user wants a short factual check. Use `thorough` for a
 pre-decision brief, a disputed or ambiguous contract, or an explicit request for
@@ -188,11 +189,23 @@ Perform an adversarial pass:
 - check whether a price move can be thin-book noise instead of new information;
 - state when the evidence is insufficient.
 
-Set the evidence cutoff after the last accepted retrieval or live observation.
-Then verify that every material retrieval and observation time is less than or equal to the evidence cutoff.
-If a later item is accepted, advance the cutoff before writing. A user-supplied
-historical cutoff is a maximum evidence date, not the wall-clock time when the
-research run ends.
+For a current report: Set the evidence cutoff after the last accepted retrieval
+or live observation. Then verify that every material retrieval and observation
+time is less than or equal to the evidence cutoff. If a later item is accepted,
+advance the cutoff before writing.
+
+For Historical cutoff mode, keep three times separate:
+
+- source-availability cutoff: the user's past `as of` time;
+- retrieval time: when the current research run accessed the source;
+- market observation time: when the quoted market state was actually observed.
+
+Filter claims by when the evidence was publicly available, not by when it was
+retrieved. Retrieval time can be later than a user-supplied historical cutoff.
+Do not present a current market snapshot as historical market state. Use only
+price history or archived observations with known observation times, and mark
+historical bid, ask, spread, and depth unavailable when no suitable archive
+exists.
 
 Use the bundled report template. Keep the market-implied probability separate
 from any independent estimate.
