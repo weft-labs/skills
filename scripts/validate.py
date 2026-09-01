@@ -216,7 +216,21 @@ for path in skill_files:
                             errors.append(f"{entry}: files must be a list of strings")
                         else:
                             for value in item["files"]:
-                                if not (path.parent / value).is_file():
+                                input_path = pathlib.Path(value)
+                                skill_root = path.parent.resolve()
+                                resolved_input = (skill_root / input_path).resolve()
+                                try:
+                                    resolved_input.relative_to(skill_root)
+                                except ValueError:
+                                    errors.append(
+                                        f"{entry}: input file must stay inside the skill: `{value}`"
+                                    )
+                                    continue
+                                if input_path.is_absolute():
+                                    errors.append(
+                                        f"{entry}: input file must be relative: `{value}`"
+                                    )
+                                elif not resolved_input.is_file():
                                     errors.append(
                                         f"{entry}: missing input file `{value}`"
                                     )
