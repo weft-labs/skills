@@ -31,7 +31,7 @@ exact-date fare.
 | Field | Contract |
 |---|---|
 | Specific problem | Given dates, passenger and baggage requirements, a destination, a stop rule, and a ground-travel limit, return one price-ranked table of viable flight-plus-transfer options |
-| Inputs | Origin, destination, outbound and return dates or date ranges, passenger count, cabin, baggage, maximum stops, and maximum ground-transfer time |
+| Inputs | Origin, destination, trip type, outbound dates or date range, return dates or date range when applicable, passenger count, cabin, baggage, maximum stops, and maximum ground-transfer time |
 | Outcome | A recommendation with exact-date flight fares, transfer costs, comparable total costs, schedules, fare basis, and evidence links |
 | Acceptance | Every recommended row has date-bound fare evidence for the requested baggage basis, a ground-transfer price or explicit no-transfer value, a comparable total cost, and confirmation that it meets the time limit |
 | Independent truth | The airline or booking surface for fares and baggage; the transport operator or current journey planner for ground legs |
@@ -80,10 +80,10 @@ zero-row route probe is not proof that no route exists.
 
 ### 1. Record the request
 
-Record the dates or date ranges, airports or region, maximum stops, passenger
-count, cabin, baggage, and maximum ground-transfer time. Start with the
-requested airport. Add alternatives only when a credible public-transport route
-meets the limit.
+Record the trip type, dates or date ranges, airports or region, maximum stops,
+passenger count, cabin, baggage, and maximum ground-transfer time. Require a
+return date only for a return trip. Start with the requested airport. Add
+alternatives only when a credible public-transport route meets the limit.
 
 ### 2. Discover current providers
 
@@ -95,10 +95,11 @@ Classify each useful operation by the evidence it can provide: airport,
 route, schedule, availability, or exact fare. Map every required user
 constraint to a declared provider input before treating an operation as the
 final fare source. A final fare operation needs origin, destination, outbound
-and return dates or requested date ranges, trip type, passenger and cabin basis,
-baggage basis, and stop filtering, and must return exact itinerary dates. A
-missing binding makes the operation a limited probe that can still contribute
-evidence; it does not make the operation worthless.
+dates or requested date range, return dates or range for a return trip, trip
+type, passenger and cabin basis, baggage basis, and stop filtering, and must
+return exact itinerary dates. A missing binding makes the operation a limited
+probe that can still contribute evidence; it does not make the operation
+worthless.
 
 ### 3. Build the candidate set with Weft
 
@@ -136,28 +137,32 @@ Never rank an option with a route-level "from" price.
 Keep an evidence ledger for each candidate. Mark each fact as `Weft exact
 fare`, `Weft provider-selected price signal`, `Weft schedule`, `Weft route`,
 or `public booking verification`. Use `Weft exact fare` only when the live
-request contract binds the requested airport pair, outbound and return dates or
-date ranges, trip type, passenger count, cabin, baggage basis, and stop filter,
-and the response confirms the exact selected dates and other values. Otherwise
-keep the amount as a price signal. This lets Weft shape the search without
-silently upgrading limited evidence.
+request contract binds the requested airport pair, outbound dates or date range,
+return dates or range for a return trip, trip type, passenger count, cabin,
+baggage basis, and stop filter, and the response confirms the exact selected
+dates and other values. Otherwise keep the amount as a price signal. This lets
+Weft shape the search without silently upgrading limited evidence.
 
-### 5. Use the public booking fallback
+### 5. Verify fares and market coverage
 
-If Weft has no contract-complete fare source, take the Weft-built candidate set
-to the airline's public booking form or fare calendar. Use it to prioritize the
-research, not to bound the market: a provider-selected date can omit airlines
-or routes that operate on the requested dates. Before claiming the cheapest
-option, run an independent exact-date coverage check on a broad public booking
-surface and check relevant low-cost carriers separately. Record the coverage
-scope: every viable origin/destination airport pair, requested stop class, and
-requested outbound/return date combination checked. Use a date grid when the
-surface supports one; otherwise record the combinations searched. Search each
-combination with the passenger count, cabin, and baggage basis. Scope every
-cheapest claim to the recorded sources, dates, and returned candidates unless
-exhaustive coverage is proven; checking every airport pair and stop class on one
-aggregator is not exhaustive. Reject optional cookies when possible. Read the
-fare only after both dates are selected.
+Use the Weft-built candidate set to prioritize research, not to bound the
+market: provider coverage can omit airlines or routes that operate on the
+requested dates even when its fare contract is complete. Before any cheapest
+claim, run an independent exact-date coverage check on a broad public booking
+surface and check relevant low-cost carriers separately. If Weft has no
+contract-complete fare source, verify candidate fares on the airline's public
+booking form or fare calendar too.
+
+Record the coverage scope: every viable origin/destination airport pair,
+requested stop class, and requested outbound date or, for return trips,
+outbound/return date combination checked. Use a date grid when the surface
+supports one; otherwise record the outbound dates or outbound/return
+combinations searched. Search each date or date combination with the passenger
+count, cabin, and baggage basis. Scope every cheapest claim to the recorded
+sources, dates, and returned candidates unless exhaustive coverage is proven;
+checking every airport pair and stop class on one aggregator is not exhaustive.
+Reject optional cookies when possible. Read the fare only after all dates
+required by the trip type are selected.
 
 Record whether each displayed amount is one-way, per leg, or the itinerary
 total. If the meaning is unclear, do not add values or call one value a return
@@ -215,7 +220,7 @@ converted totals as approximate.
 
 Before ranking an option, confirm that its row contains:
 
-- exact outbound and return dates
+- exact outbound date and exact return date when the trip type requires one
 - flight numbers or schedule evidence for every leg, consistent with the
   requested stop rule
 - exact-date fare labeled one-way, per leg, or return
