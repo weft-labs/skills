@@ -53,7 +53,7 @@
     },
     {
       "id": 4,
-      "prompt": "Prepare the structured-data acquisition section for a refreshed report on https://polymarket.com/event/adbe-quarterly-earnings-nongaap-eps-09-10-2026-6pt08?outcomeIndex=1. The public page does not provide dependable historical level-two books or wallet concentration, and ordinary web research may miss structured social/news and financial evidence. Before calling those gaps unavailable, search Weft's live catalog for every applicable capability. Search only: do not make a paid fetch. Return the catalog operations found, observed prices, intended report use, contract-fit checks, and authority or inference limits.",
+      "prompt": "Prepare a refreshed research report on https://polymarket.com/event/adbe-quarterly-earnings-nongaap-eps-09-10-2026-6pt08?outcomeIndex=1. The public page is insufficient to reconstruct past market state or assess public position concentration, and ordinary web research may omit useful machine-readable evidence. Close material data gaps where useful. Explain which other data categories cannot change this company-contract report. Do not spend money, connect a wallet, request credentials, or place a trade. Report the sources found, observed costs, intended use, input and output fit, and authority or inference limits.",
       "expected_output": "A provider-neutral acquisition plan based on free live Weft searches for applicable Polymarket history, public positioning, social/news discovery, and company evidence. It must record live operations and prices without buying data, keep official sources authoritative, and refuse intent or insider inferences from public activity.",
       "files": [],
       "expectations": [
@@ -64,7 +64,8 @@
         "The catalog search covers SEC facts, filings, earnings history, transcripts, estimates, or equivalent structured company evidence while keeping Adobe and the named settlement source authoritative.",
         "The response records observed provider operations and prices as point-in-time catalog facts, while stating that live contracts and prices remain authoritative.",
         "The response explains why unrelated sports or weather searches are not needed for this company contract instead of searching every catalog category mechanically.",
-        "No paid fetch occurs, no wallet credentials are requested, and no provider result is treated as a trading instruction or guaranteed edge."
+        "No paid fetch occurs, no wallet credentials are requested, and no provider result is treated as a trading instruction or guaranteed edge.",
+        "The response uses one routing ledger for every applicable or irrelevant capability class with searched or skipped status, a report-specific reason, the strongest contract-complete provider and operation or none found, observed price and retrieval time, contract-fit result or gap, and an explicit statement that no paid operation was called and no funds were held."
       ]
     }
   ]

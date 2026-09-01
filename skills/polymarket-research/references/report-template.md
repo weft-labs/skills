@@ -57,6 +57,20 @@ conflicting values. Do not infer intent from public wallet activity.
 
 Group copied or syndicated reports under their original evidence family.
 
+## Structured-data routing
+
+Complete this section after the required free Weft searches. If Weft is
+unavailable, state that fact and preserve the material data gaps.
+
+| Capability class | Searched or skipped | Why it applies or cannot change the report | Provider and operation | Observed price and retrieval time | Contract-fit result or remaining gap |
+|---|---|---|---|---|---|
+| [capability] | [searched or skipped] | [report-specific reason] | [strongest complete operation, none found, or not applicable] | [point-in-time catalog facts or not applicable] | [bound identifiers, dates, measures, output, and limits] |
+
+Do not hard-code providers or prices. Treat the live operation contract and
+later payment challenge as authoritative. For a search-only run, state:
+`No paid operation was called and no funds were held.` If a paid fetch occurs,
+record its attribution, receipt, and actual `paid_usd + held_usd` instead.
+
 ## YES case
 
 State the strongest evidence-led path to YES. Name assumptions and the evidence
@@ -103,8 +117,8 @@ instruction.
 
 - List the primary market, rule, resolver, and external source links.
 - State the market-data observation times and any paid provider attribution.
-- State actual Weft `paid_usd + held_usd` when used; otherwise say no paid data
-  was used.
+- State actual Weft `paid_usd + held_usd` when used. For a search-only run, say
+  `No paid operation was called and no funds were held.`
 - State missing coverage, access controls, geographic or legal limits, source
   drift, and other material uncertainty.
 - End with: `Point-in-time research; not financial advice. No trade was placed.`

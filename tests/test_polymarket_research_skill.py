@@ -99,9 +99,14 @@ class PolymarketResearchSkillTest(unittest.TestCase):
             "prediction-market holders, wallet positions, and public positioning",
             "X, Reddit, and structured news discovery",
             "SEC facts, filings, earnings history, transcripts, and analyst estimates",
+            "official sports schedules, results, injuries, lineups, player form, and odds",
             "event-specific current and historical weather",
             "Do not hard-code provider names or prices",
+            "A free search is not permission to pay",
+            "strongest contract-complete operation found",
             "Name the skipped capability classes",
+            "observed price, and retrieval time",
+            "no paid operation was called and no funds were held",
         ):
             self.assertIn(phrase, text)
 
@@ -122,12 +127,20 @@ class PolymarketResearchSkillTest(unittest.TestCase):
             "## Settlement contract",
             "## Current market state",
             "## Evidence ledger",
+            "## Structured-data routing",
             "## YES case",
             "## NO case",
             "## Unknowns and invalidation conditions",
             "## Sources and limitations",
         ):
             self.assertIn(heading, report_reference)
+        for phrase in (
+            "Searched or skipped",
+            "Provider and operation",
+            "Observed price and retrieval time",
+            "No paid operation was called and no funds were held",
+        ):
+            self.assertIn(phrase, report_reference)
 
     def test_starter_prompts_and_evals_cover_distinct_domains(self):
         prompts = self.read("examples/starter-prompts.yml").lower()
@@ -138,8 +151,19 @@ class PolymarketResearchSkillTest(unittest.TestCase):
         self.assertEqual("polymarket-research", evals["skill_name"])
         self.assertEqual(4, len(evals["evals"]))
         joined = " ".join(item["prompt"].lower() for item in evals["evals"])
-        for phrase in ("polit", "company", "sports", "weft"):
+        for phrase in ("polit", "company", "sports"):
             self.assertIn(phrase, joined)
+        cue_free_prompt = evals["evals"][3]["prompt"].lower()
+        for cue in ("weft", "catalog", "provider", "operation"):
+            self.assertNotIn(cue, cue_free_prompt)
+        cue_free_expectations = " ".join(evals["evals"][3]["expectations"]).lower()
+        for phrase in (
+            "searched or skipped",
+            "strongest contract-complete",
+            "retrieval time",
+            "no funds were held",
+        ):
+            self.assertIn(phrase, cue_free_expectations)
 
     def test_gallery_cover_has_required_shape(self):
         cover = SKILL_DIR / "cover.webp"
