@@ -91,6 +91,20 @@ class PolymarketResearchSkillTest(unittest.TestCase):
         ):
             self.assertIn(phrase, text)
 
+    def test_weft_catalog_search_intents_are_explicit(self):
+        text = " ".join(self.read("SKILL.md").split())
+        for phrase in (
+            "Before declaring a structured-data gap",
+            "Polymarket historical orderbook snapshots, trades, OHLCV, and cumulative volume",
+            "prediction-market holders, wallet positions, and public positioning",
+            "X, Reddit, and structured news discovery",
+            "SEC facts, filings, earnings history, transcripts, and analyst estimates",
+            "event-specific current and historical weather",
+            "Do not hard-code provider names or prices",
+            "Name the skipped capability classes",
+        ):
+            self.assertIn(phrase, text)
+
     def test_references_define_data_limits_and_exact_report(self):
         data_reference = self.read("references/polymarket-data.md")
         report_reference = self.read("references/report-template.md")
@@ -122,9 +136,9 @@ class PolymarketResearchSkillTest(unittest.TestCase):
 
         evals = json.loads(self.read("evals/evals.json"))
         self.assertEqual("polymarket-research", evals["skill_name"])
-        self.assertEqual(3, len(evals["evals"]))
+        self.assertEqual(4, len(evals["evals"]))
         joined = " ".join(item["prompt"].lower() for item in evals["evals"])
-        for phrase in ("polit", "company", "sports"):
+        for phrase in ("polit", "company", "sports", "weft"):
             self.assertIn(phrase, joined)
 
     def test_gallery_cover_has_required_shape(self):

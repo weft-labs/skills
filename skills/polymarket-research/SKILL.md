@@ -167,6 +167,34 @@ Ordinary public-web research does not require payment. When a material financial
 sports, news, or historical-data gap remains and a structured provider would
 change the report, load the current `weft` skill.
 
+Before declaring a structured-data gap, use free `weft_search` for every
+applicable intent below. These prompts make useful catalog capabilities visible
+without assuming that a remembered provider is still present:
+
+- `Polymarket historical orderbook snapshots, trades, OHLCV, and cumulative volume`
+  for historical mode, price-move reconstruction, and liquidity changes;
+- `prediction-market holders, wallet positions, and public positioning` when
+  the user asks about public flow or concentration;
+- `X, Reddit, and structured news discovery` for wider reporting, rumor, and
+  community-lead discovery;
+- `SEC facts, filings, earnings history, transcripts, and analyst estimates`
+  for company and earnings contracts;
+- `official sports schedules, results, injuries, lineups, player form, and odds`
+  for sports contracts when primary public coverage is incomplete;
+- `event-specific current and historical weather` when weather can affect the
+  settlement test or a sports event.
+
+Do not hard-code provider names or prices. Reformulate weak searches and let the
+live catalog own operation contracts, availability, and cost. A free search is
+not permission to pay. Fetch only when an operation binds the exact market,
+token, entity, event, date, measure, and output needed by the report.
+
+In the report, list each searched capability class, why it applies, and the
+strongest contract-complete operation found. Name the skipped capability classes
+and explain why they cannot change this report. Record provider, operation,
+observed price, and retrieval time as point-in-time catalog facts. If the run is
+search-only, state that no paid operation was called and no funds were held.
+
 Follow its free search, contract-fit, balance, cost-cap, attribution, receipt,
 and no-paid-retry rules. Search the live catalog instead of naming a remembered
 provider. Pay only for an operation whose declared inputs bind the required
@@ -175,7 +203,9 @@ paid call and the actual paid plus held amount after it.
 
 If Weft is unavailable or no contract-complete provider exists, continue with
 public evidence and name the gap. Never treat a paid result as authority over
-the market's named resolution source.
+the market's named resolution source. Treat holder, wallet, social, and sentiment
+data as public activity or research leads, never proof of motive, coordination,
+or inside information.
 
 ### 7. Reconcile before writing
 
