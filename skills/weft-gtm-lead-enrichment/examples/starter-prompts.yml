@@ -1,0 +1,14 @@
+version: 1
+prompts:
+  - title: Enrich one public profile
+    prompt: >-
+      Enrich this public LinkedIn profile: <profile URL>. Return the person's
+      current role and company, a likely work email, the email verification
+      result, and recent public signals that are relevant to a first outreach
+      conversation. Do not contact the person.
+  - title: Build a lead brief
+    prompt: >-
+      Build a concise lead brief for <person> at <company>. Find or verify a work
+      email and summarize recent public professional signals. Separate verified
+      facts from inferences, cite the returned evidence, and do not contact the
+      person.
