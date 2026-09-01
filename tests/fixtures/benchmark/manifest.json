@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "skill": "fixture-weft-skill",
+  "skills": ["tests/fixtures/benchmark/skill"],
+  "minimum_repetitions": 1,
+  "paid_actions": {
+    "enabled": false
+  },
+  "cases": [
+    {
+      "id": "fixture-outcome",
+      "prompt": "Return the requested verified result.",
+      "fixtures": [],
+      "checks": [
+        {
+          "id": "verified-result",
+          "pattern": "Used Weft\\. Verified result\\."
+        }
+      ],
+      "truth_provenance": "The test fixture contract is committed before execution and the fake harness does not generate it."
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "version": 1,
+  "skill": "weft-flights-search",
+  "skills": [
+    "skills/weft",
+    "skills/weft-flights-search"
+  ],
+  "minimum_repetitions": 3,
+  "paid_actions": {
+    "enabled": false
+  },
+  "cases": [
+    {
+      "id": "bounded-flight-research-plan",
+      "prompt": "Plan how you would find the cheapest credible return trip from Berlin to Lecce for one adult with one checked bag, flexible by two days, at most one stop, and no more than two hours of ground transfer. Explain the evidence required before recommending an itinerary. Do not search or buy data.",
+      "truth_provenance": "Maintainer-authored acceptance contract from flight retailing evidence requirements and the public workflow contract; committed before benchmark execution.",
+      "checks": [
+        {
+          "id": "date-bound-fare",
+          "pattern": "(?is)^(?!.*(exact-date|date-bound|specific date).{0,120}(fare|price).{0,80}(not required|unnecessary|not needed|optional|skip|do not need))(?!.*(do not|don.t|not|never).{0,80}(need|require|use).{0,100}(exact-date|date-bound|specific date).{0,80}(fare|price))(?!.*skip.{0,100}(exact-date|date-bound|specific date).{0,80}(fare|price)).*(exact-date|date-bound|specific date).{0,180}(fare|price)"
+        },
+        {
+          "id": "baggage-basis",
+          "pattern": "(?is)^(?!.*(do not|don.t|never).{0,40}(include|price|account|reflect|count|add).{0,80}(checked[ -]?bag|baggage))(?!.*(ignore|skip|exclude|omit).{0,80}(checked[ -]?bag|baggage))(?!.*(checked[ -]?bag|baggage).{0,160}(does not|doesn.t|not).{0,80}(need|required|included|reflected|priced|costed|counted))(?!.*(checked[ -]?bag|baggage).{0,160}(unnecessary|optional|excluded|omitted)).*(checked[ -]?bag|baggage).{0,180}(fare|price|included|basis|cost)"
+        },
+        {
+          "id": "nearby-airport-transfer",
+          "pattern": "(?is)^(?!.*(may|can|could)\\s+(be\\s+)?exceed(ed)?.{0,120}(\\btwo\\b|2(?!\\d|\\s+(hundred|thousand|million|dozen|score))).{0,20}hours?)(?!.*(\\btwo\\b|2(?!\\d|\\s+(hundred|thousand|million|dozen|score))).{0,20}hours?.{0,120}(may|can|could)\\s+(be\\s+)?exceed(ed)?).*(nearby|alternative).{0,100}airport.{0,500}((ground|train|transfer).{0,120}(no more than|at most|within|maximum(?: of)?|max(?:imum)?(?: of)?|<=|≤).{0,40}(\\btwo\\b(?!\\s+(hundred|thousand|million|dozen|score))|2(?!\\d|\\s+(hundred|thousand|million|dozen|score))).{0,20}hours?|(no more than|at most|within|maximum(?: of)?|max(?:imum)?(?: of)?|<=|≤).{0,40}(\\btwo\\b(?!\\s+(hundred|thousand|million|dozen|score))|2(?!\\d|\\s+(hundred|thousand|million|dozen|score))).{0,20}hours?.{0,120}(ground|train|transfer))"
+        },
+        {
+          "id": "one-stop-maximum",
+          "pattern": "(?is)^(?!.*(may|can|could)\\s+(be\\s+)?exceed(ed)?.{0,100}(\\bone\\b|1(?!\\d|\\s+(hundred|thousand|million|dozen|score))).{0,20}stops?)(?!.*(\\bone\\b|1(?!\\d|\\s+(hundred|thousand|million|dozen|score))).{0,20}stops?.{0,100}(may|can|could)\\s+(be\\s+)?exceed(ed)?).*(at most|no more than|maximum(?: of)?|max(?:imum)?(?: of)?|<=|≤).{0,40}(\\bone\\b(?!\\s+(hundred|thousand|million|dozen|score))|1(?!\\d|\\s+(hundred|thousand|million|dozen|score))).{0,20}stops?"
+        },
+        {
+          "id": "two-day-flexibility",
+          "pattern": "(?is)^(?!.*(do not|don.t|never|avoid|skip).{0,60}(search|check|use)?\\s*(\\btwo\\b|2)\\s*days?.{0,40}(before.{0,20}and.{0,20}after|either side))(?!.*(optional|unnecessary|not required|not needed|skip).{0,60}(to\\s+)?(search|check|use)?.{0,40}(\\btwo\\b|2)\\s*days?.{0,40}(before.{0,20}and.{0,20}after|either side))(?!.*(\\btwo\\b|2)\\s*days?.{0,40}(before.{0,20}and.{0,20}after|either side).{0,60}(optional|unnecessary|not required|not needed|skip)).*((±|\\+/-|plus(?: or)? minus)\\s*(\\btwo\\b(?!\\s+(hundred|thousand|million|dozen|score))|2(?!\\d))\\s*days?|(\\btwo\\b(?!\\s+(hundred|thousand|million|dozen|score))|2(?!\\d))\\s*days?.{0,40}(before.{0,20}and.{0,20}after|either side)|(before.{0,20}and.{0,20}after).{0,40}(\\btwo\\b(?!\\s+(hundred|thousand|million|dozen|score))|2(?!\\d))\\s*days?)"
+        },
+        {
+          "id": "coverage-separation",
+          "pattern": "(?is)^(?!.*(do not|don.t|never|avoid|skip).{0,40}(check|compare|separate|cover).{0,100}(low-cost|LCC|GDS))(?!.*(low-cost|LCC|GDS|separate coverage).{0,180}(not required|unnecessary|not needed|optional|ignore|skip))(?!.*(not required|unnecessary|not needed|optional|ignore|skip).{0,180}(low-cost|LCC|GDS|separate coverage)).*((separate|distinct).{0,100}(low-cost|LCC).{0,180}GDS|(low-cost|LCC).{0,180}(separate|distinct).{0,180}GDS|(low-cost|LCC).{0,180}GDS.{0,100}(separate|distinct))"
+        }
+      ]
+    }
+  ]
+}
