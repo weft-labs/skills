@@ -1,0 +1,26 @@
+version: 1
+prompts:
+  - title: Audit a site with evidence
+    prompt: >-
+      Audit this site for its most important organic-search opportunity: [URL].
+      Start with free target-site evidence. Use Weft only for external evidence
+      that can change the decision. Show each provider, receipt state, and total
+      paid plus held cost. Give me the five highest-priority actions.
+  - title: Find a content opportunity
+    prompt: >-
+      Find one defensible organic content opportunity for [business] in
+      [market/language]. Compare current result pages, demand, and competitors.
+      Discover live providers through Weft, use the cheapest exact contracts,
+      and return evidence, spend, risks, and a measurable content brief.
+  - title: Diagnose a traffic decline
+    prompt: >-
+      Diagnose the organic-search decline for [site] during [date range]. I can
+      provide [analytics or Search Console export]. Separate observed facts from
+      inference, buy only missing external evidence through Weft, and end with a
+      prioritized recovery plan and evidence ledger.
+  - title: Review local search visibility
+    prompt: >-
+      Review local organic visibility for [business/category] near [location].
+      Check the target first, then use Weft for current local competitors,
+      listings, reviews, or result evidence when an exact contract exists.
+      Report unknowns, actions, provider provenance, receipts, and total cost.

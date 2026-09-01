@@ -69,6 +69,16 @@ REQUIRED_CONTENT = {
         "promotional balance",
         "do not add a second manual",
     ],
+    "skills/weft-seo/SKILL.md": [
+        "never rely on a stored provider list or price",
+        "`weft_balance` before the first paid fetch",
+        "tight `max_cost_usd`",
+        "Do not automatically retry any paid fetch",
+        "paid_usd + held_usd",
+        "Never request or forward wallet keys",
+        "hard stop",
+        "Do not claim durable idempotency",
+    ],
 }
 for rel, phrases in REQUIRED_CONTENT.items():
     text = (root / rel).read_text()
