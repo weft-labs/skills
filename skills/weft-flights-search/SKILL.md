@@ -182,11 +182,12 @@ Creating a remote session is a side effect. Show its duration, expected cost,
 and task, and get explicit confirmation unless the user already requested that
 exact session. Keep the browsing itself read-only: reject optional cookies, do
 not log in, and stop before reservation, hold, passenger-data entry, or
-purchase. Close or terminate the remote session when the task ends. Add
-recovered facts to the evidence ledger as `Weft browser verification`, with the
-operation, a canonical or redacted public page URL, timestamp, receipt, and any
-unresolved ambiguity. Remove session IDs, signed query parameters, tokens, and
-URL fragments from recorded sources.
+purchase. Close or terminate the remote session when the task ends. Keep facts
+from public airline or booking pages labeled `public booking verification`.
+Record Weft browser access separately with the operation, receipt, timestamp,
+canonical or redacted public page URL, and any unresolved ambiguity. Remove
+session IDs, signed query parameters, tokens, and URL fragments from recorded
+sources.
 
 ### 7. Price the complete trip
 
@@ -265,8 +266,8 @@ verification supplied the terminal fare.
 
 - Distilled from session `01a0003f-a18b-7c4c-8a59-1f8d31c4e6b2`
   (2026-08-14), trace `.traces/2026-08-15-weft-flight-research.zip`.
-- Source sample: one session, one Weft search, two CLI fetches, and eight SDK
-  fetches; three fetches failed.
+- Initial trace sample: one archived research-only session, one Weft search,
+  two CLI fetches, and eight SDK fetches; three fetches failed.
 - Production calibration on 2026-08-29: three free catalog searches and one
   x402 Atlas route-matrix fetch (`$0.05` held, HTTP 200, artifact `360`).
 - Revised from price-omission feedback in OpenCode session
@@ -279,7 +280,8 @@ verification supplied the terminal fare.
   direct flights, connection candidates, airport coverage, and provider-selected
   price signals (artifact `389`), while exact January fares still required a
   date-bound public booking search.
-- The same session tested browser escalation through live Weft discovery.
+- A later unarchived research session tested browser escalation through live
+  Weft discovery.
   Browser Use was rejected before payment because its submission-only contract
   had no poll this host could authenticate. Browserbase returned a five-minute
   CDP session for `$0.01` held (artifact `391`), but its connection credentials
