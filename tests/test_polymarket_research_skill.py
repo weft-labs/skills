@@ -311,6 +311,33 @@ END_DECISION_RECORD""",
             "Ask the user for confirmation before using the replacement.",
             "The brief is blocked pending confirmation of the replacement.",
         )
+        book_table_wording = adjudicated["current-conflicted-market"].replace(
+            "BEGIN_DECISION_RECORD",
+            "Best bid | Best ask | Midpoint | Last trade\n"
+            "No probability or trade recommendation is provided.\n"
+            "BEGIN_DECISION_RECORD",
+        )
+        without_confirmation_wording = adjudicated[
+            "unresolved-identity-stop"
+        ].replace(
+            "Ask the user for confirmation before using the replacement.",
+            "The candidate cannot be treated as the same market without "
+            "explicit user confirmation.",
+        )
+        requires_confirmation_wording = adjudicated[
+            "unresolved-identity-stop"
+        ].replace(
+            "Ask the user for confirmation before using the replacement.",
+            "Completing the brief requires confirmation that the candidate is "
+            "the intended replacement.",
+        )
+        until_confirmed_wording = adjudicated[
+            "unresolved-identity-stop"
+        ].replace(
+            "Ask the user for confirmation before using the replacement.",
+            "The brief remains blocked until the user explicitly confirms the "
+            "replacement.",
+        )
         self.assertRegex(
             safe_wording,
             checks_by_case["current-conflicted-market"]["bounded-action-decisions"],
@@ -343,6 +370,25 @@ END_DECISION_RECORD""",
                 "distinct-slugs-and-confirmation"
             ],
         )
+        self.assertRegex(
+            book_table_wording,
+            checks_by_case["current-conflicted-market"][
+                "bounded-action-decisions"
+            ],
+        )
+        self.assertRegex(
+            without_confirmation_wording,
+            checks_by_case["unresolved-identity-stop"][
+                "distinct-slugs-and-confirmation"
+            ],
+        )
+        for answer in (requires_confirmation_wording, until_confirmed_wording):
+            self.assertRegex(
+                answer,
+                checks_by_case["unresolved-identity-stop"][
+                    "distinct-slugs-and-confirmation"
+                ],
+            )
         self.assertNotRegex(
             adversarial[0],
             checks_by_case["current-conflicted-market"]["bounded-action-decisions"],
