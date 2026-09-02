@@ -10,8 +10,11 @@ import sys
 import yaml
 
 from benchmark import (
+    BENCHMARK_CHART_PATH,
     load_manifest,
     render_benchmark_block,
+    render_benchmark_chart,
+    render_unmeasured_chart,
     verify_case_minimums,
     verify_publication,
 )
@@ -156,6 +159,18 @@ for path in skill_files:
             errors.append(f"{readme.relative_to(root)}: benchmark markers are reversed")
         else:
             block = readme_text.split(start, 1)[1].split(end, 1)[0]
+            chart = re.search(r"!\[Benchmark (?:chart|status)\]\(([^)]+)\)", block)
+            chart_path = None
+            if not chart:
+                errors.append(
+                    f"{readme.relative_to(root)}: benchmark has no chart image"
+                )
+            elif chart.group(1) != BENCHMARK_CHART_PATH:
+                errors.append(
+                    f"{readme.relative_to(root)}: benchmark chart must use `{BENCHMARK_CHART_PATH}`"
+                )
+            else:
+                chart_path = readme.parent / BENCHMARK_CHART_PATH
             measured = all(
                 term in block
                 for term in (
@@ -209,10 +224,37 @@ for path in skill_files:
                                 errors.append(
                                     f"{readme.relative_to(root)}: measured benchmark block differs from evidence"
                                 )
+                            if chart_path is not None:
+                                expected_chart = render_benchmark_chart(summary)
+                                try:
+                                    actual_chart = chart_path.read_text(
+                                        encoding="utf-8"
+                                    )
+                                except OSError as exc:
+                                    errors.append(
+                                        f"{chart_path.relative_to(root)}: missing benchmark chart: {exc}"
+                                    )
+                                else:
+                                    if actual_chart != expected_chart:
+                                        errors.append(
+                                            f"{chart_path.relative_to(root)}: measured chart differs from evidence"
+                                        )
                         except (OSError, ValueError) as exc:
                             errors.append(
                                 f"{readme.relative_to(root)}: invalid benchmark evidence: {exc}"
                             )
+            elif unmeasured and chart_path is not None:
+                try:
+                    actual_chart = chart_path.read_text(encoding="utf-8")
+                except OSError as exc:
+                    errors.append(
+                        f"{chart_path.relative_to(root)}: missing benchmark chart: {exc}"
+                    )
+                else:
+                    if actual_chart != render_unmeasured_chart():
+                        errors.append(
+                            f"{chart_path.relative_to(root)}: unmeasured chart is stale"
+                        )
 
     manifest = path.parent / "benchmarks" / "manifest.json"
     if not manifest.is_file():

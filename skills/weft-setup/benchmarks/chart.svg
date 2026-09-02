@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="280" viewBox="0 0 960 280" role="img" aria-labelledby="title desc">
+  <title id="title">Benchmark not measured</title>
+  <desc id="desc">No reproducible without skill and with skill comparison has been published.</desc>
+  <rect width="100%" height="100%" rx="18" fill="#f8fafc"/>
+  <text x="32" y="42" fill="#0f172a" font-family="ui-sans-serif, system-ui, sans-serif" font-size="24" font-weight="700">Benchmark not measured</text>
+  <text x="32" y="68" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14">Run the committed benchmark to compare without skill and with skill.</text>
+  <rect x="32" y="96" width="280" height="148" rx="12" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="48" y="128" fill="#334155" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14" font-weight="700">Time</text>
+  <text x="48" y="166" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">Without skill</text>
+  <text x="296" y="166" text-anchor="end" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="14">—</text>
+  <line x1="48" y1="178" x2="296" y2="178" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" stroke-dasharray="2 18"/>
+  <text x="48" y="210" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">With skill</text>
+  <text x="296" y="210" text-anchor="end" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="14">—</text>
+  <line x1="48" y1="222" x2="296" y2="222" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" stroke-dasharray="2 18"/>
+  <rect x="332" y="96" width="280" height="148" rx="12" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="348" y="128" fill="#334155" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14" font-weight="700">Accomplishment rate</text>
+  <text x="348" y="166" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">Without skill</text>
+  <text x="596" y="166" text-anchor="end" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="14">—</text>
+  <line x1="348" y1="178" x2="596" y2="178" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" stroke-dasharray="2 18"/>
+  <text x="348" y="210" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">With skill</text>
+  <text x="596" y="210" text-anchor="end" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="14">—</text>
+  <line x1="348" y1="222" x2="596" y2="222" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" stroke-dasharray="2 18"/>
+  <rect x="632" y="96" width="280" height="148" rx="12" fill="#ffffff" stroke="#cbd5e1"/>
+  <text x="648" y="128" fill="#334155" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14" font-weight="700">Tokens</text>
+  <text x="648" y="166" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">Without skill</text>
+  <text x="896" y="166" text-anchor="end" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="14">—</text>
+  <line x1="648" y1="178" x2="896" y2="178" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" stroke-dasharray="2 18"/>
+  <text x="648" y="210" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">With skill</text>
+  <text x="896" y="210" text-anchor="end" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="14">—</text>
+  <line x1="648" y1="222" x2="896" y2="222" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" stroke-dasharray="2 18"/>
+</svg>

@@ -22,7 +22,7 @@ flowchart LR
   N --> G[Independent grader]
   W --> G
   G --> J[Raw and summary JSON]
-  J --> R[Generated README block]
+  J --> R[Generated README block and SVG chart]
 ```
 
 The orchestrator owns isolation, paired scheduling, telemetry normalization,
@@ -112,15 +112,20 @@ identifier, skill-tree digest, manifest digest, duration, token count,
 accomplishment checks, final answer, and exclusion. The summary contains only
 aggregate facts derived from raw valid runs.
 
-`publish` replaces a marker-bounded section in the skill README. It writes one
-row per harness/model/arm plus the with-Weft delta and links the committed raw
-result. Before writing, it reloads the current manifest and skill files, rereads
+`publish` replaces a marker-bounded section in the skill README and writes a
+deterministic SVG to `benchmarks/chart.svg`. The README embeds that stable path.
+The chart shows side-by-side `without_weft` and `with_weft` values for time,
+accomplishment rate, and tokens. It writes one table row per harness/model/arm
+plus the with-Weft delta and links the committed raw result. Before writing, it
+reloads the current manifest and skill files, rereads
 each sibling `answer.md`, re-runs the committed checks, and recomputes the
 aggregates. It requires the minimum number of valid pairs for every target and
 every case. It refuses partial cases, changed aggregates, stale skill or
 manifest digests, evidence outside the skill, missing telemetry, duplicate
 runs, or incomplete case coverage. An unmeasured skill README states that no
-result has been published; it does not show zeros.
+result has been published, and its chart shows an explicit unmeasured state. It
+does not show zeros. Repository validation reproduces measured charts from raw
+evidence and rejects missing or stale chart files.
 
 ## Safety
 

@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import dataclasses
 import hashlib
+import html
 import json
 import math
 import os
@@ -29,6 +30,7 @@ ARMS = ("without_weft", "with_weft")
 SUPPORTED_HARNESSES = ("codex", "pi")
 START_MARKER = "<!-- weft-benchmark:start -->"
 END_MARKER = "<!-- weft-benchmark:end -->"
+BENCHMARK_CHART_PATH = "benchmarks/chart.svg"
 CODEX_DISABLED_FEATURES = (
     "apps",
     "browser_use",
@@ -1657,11 +1659,123 @@ def signed(value: float | int, suffix: str = "") -> str:
     return f"{value:+g}{suffix}"
 
 
-def render_benchmark_block(summary: dict, raw_path: str) -> str:
+def chart_number(value: float | int) -> str:
+    return f"{value:g}"
+
+
+def chart_text(value: object) -> str:
+    return html.escape(str(value), quote=True)
+
+
+def render_benchmark_chart(summary: dict) -> str:
+    pairs = []
+    seen = set()
+    for row in summary["results"]:
+        key = (row["harness"], row["model"])
+        if key in seen:
+            continue
+        seen.add(key)
+        target_rows = {
+            candidate["arm"]: candidate
+            for candidate in summary["results"]
+            if (candidate["harness"], candidate["model"]) == key
+        }
+        pairs.append((key, target_rows["without_weft"], target_rows["with_weft"]))
+
+    width = 960
+    group_height = 214
+    height = 96 + group_height * len(pairs)
+    lines = [
+        f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img" aria-labelledby="title desc">',
+        f'  <title id="title">Benchmark: {chart_text(summary["skill"])}</title>',
+        '  <desc id="desc">Without skill and with skill comparison for time, accomplishment rate, and tokens.</desc>',
+        '  <rect width="100%" height="100%" rx="18" fill="#f8fafc"/>',
+        f'  <text x="32" y="40" fill="#0f172a" font-family="ui-sans-serif, system-ui, sans-serif" font-size="24" font-weight="700">Benchmark: {chart_text(summary["skill"])}</text>',
+        '  <text x="32" y="66" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14">Without skill versus with skill · lower time and tokens are better · higher accomplishment is better</text>',
+    ]
+    metrics = (
+        ("Time", "median_time_seconds", lambda value: f"{chart_number(value)} s"),
+        (
+            "Accomplishment rate",
+            "accomplishment_rate",
+            lambda value: percentage(value),
+        ),
+        ("Tokens", "median_tokens", chart_number),
+    )
+    for target_index, (key, without, with_skill) in enumerate(pairs):
+        group_y = 100 + target_index * group_height
+        label = f"{harness_title(key[0])} · {key[1]}"
+        lines.append(
+            f'  <text x="32" y="{group_y}" fill="#0f172a" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16" font-weight="650">{chart_text(label)}</text>'
+        )
+        for metric_index, (title, field, formatter) in enumerate(metrics):
+            x = 32 + metric_index * 300
+            y = group_y + 16
+            values = (without[field], with_skill[field])
+            scale = 1.0 if field == "accomplishment_rate" else max(values) or 1.0
+            lines.extend(
+                [
+                    f'  <rect x="{x}" y="{y}" width="280" height="166" rx="12" fill="#ffffff" stroke="#cbd5e1"/>',
+                    f'  <text x="{x + 16}" y="{y + 28}" fill="#334155" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14" font-weight="700">{chart_text(title)}</text>',
+                ]
+            )
+            for arm_index, (arm_label, value, color) in enumerate(
+                (
+                    ("Without skill", values[0], "#64748b"),
+                    ("With skill", values[1], "#0f766e"),
+                )
+            ):
+                label_y = y + 58 + arm_index * 52
+                bar_y = label_y + 10
+                bar_width = max(0.0, min(248.0, 248.0 * float(value) / scale))
+                lines.extend(
+                    [
+                        f'  <text x="{x + 16}" y="{label_y}" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">{arm_label}</text>',
+                        f'  <text x="{x + 264}" y="{label_y}" text-anchor="end" fill="#0f172a" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" font-weight="700">{chart_text(formatter(value))}</text>',
+                        f'  <rect x="{x + 16}" y="{bar_y}" width="248" height="12" rx="6" fill="#e2e8f0"/>',
+                        f'  <rect x="{x + 16}" y="{bar_y}" width="{bar_width:.2f}" height="12" rx="6" fill="{color}"/>',
+                    ]
+                )
+    lines.append("</svg>")
+    return "\n".join(lines) + "\n"
+
+
+def render_unmeasured_chart() -> str:
+    lines = [
+        '<svg xmlns="http://www.w3.org/2000/svg" width="960" height="280" viewBox="0 0 960 280" role="img" aria-labelledby="title desc">',
+        '  <title id="title">Benchmark not measured</title>',
+        '  <desc id="desc">No reproducible without skill and with skill comparison has been published.</desc>',
+        '  <rect width="100%" height="100%" rx="18" fill="#f8fafc"/>',
+        '  <text x="32" y="42" fill="#0f172a" font-family="ui-sans-serif, system-ui, sans-serif" font-size="24" font-weight="700">Benchmark not measured</text>',
+        '  <text x="32" y="68" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14">Run the committed benchmark to compare without skill and with skill.</text>',
+    ]
+    for index, title in enumerate(("Time", "Accomplishment rate", "Tokens")):
+        x = 32 + index * 300
+        lines.extend(
+            [
+                f'  <rect x="{x}" y="96" width="280" height="148" rx="12" fill="#ffffff" stroke="#cbd5e1"/>',
+                f'  <text x="{x + 16}" y="128" fill="#334155" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14" font-weight="700">{title}</text>',
+                f'  <text x="{x + 16}" y="166" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">Without skill</text>',
+                f'  <text x="{x + 264}" y="166" text-anchor="end" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="14">—</text>',
+                f'  <line x1="{x + 16}" y1="178" x2="{x + 264}" y2="178" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" stroke-dasharray="2 18"/>',
+                f'  <text x="{x + 16}" y="210" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">With skill</text>',
+                f'  <text x="{x + 264}" y="210" text-anchor="end" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="14">—</text>',
+                f'  <line x1="{x + 16}" y1="222" x2="{x + 264}" y2="222" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" stroke-dasharray="2 18"/>',
+            ]
+        )
+    lines.append("</svg>")
+    return "\n".join(lines) + "\n"
+
+
+def render_benchmark_block(
+    summary: dict, raw_path: str, chart_path: str = BENCHMARK_CHART_PATH
+) -> str:
     lines = [
         "## Benchmark",
         "",
         "The same clean-room tasks run without Weft and with Weft. Headline metrics are end-to-end time, full-task accomplishment rate, and total agent tokens.",
+        "",
+        f"![Benchmark chart]({chart_path})",
         "",
         "| Harness / model | Arm | Time, median | Accomplishment rate | Tokens, median | Valid / excluded pairs |",
         "|---|---|---:|---:|---:|---:|",
@@ -1699,11 +1813,13 @@ def replace_benchmark_block(readme: str, block: str) -> str:
     return pattern.sub(replacement, readme, count=1)
 
 
-def unmeasured_block() -> str:
+def unmeasured_block(chart_path: str = BENCHMARK_CHART_PATH) -> str:
     return "\n".join(
         [
             START_MARKER,
             "## Benchmark",
+            "",
+            f"![Benchmark status]({chart_path})",
             "",
             "**Status: Unmeasured.** No reproducible with-Weft versus without-Weft result has been published for this skill yet.",
             END_MARKER,
@@ -1904,7 +2020,7 @@ def require_supported_platform(dry_run: bool) -> None:
 
 def command_publish(args: argparse.Namespace) -> int:
     manifest_path = pathlib.Path(args.manifest).resolve()
-    manifest = load_manifest(manifest_path)
+    manifest = load_manifest(manifest_path, ROOT)
     summary_path = pathlib.Path(args.summary).resolve()
     summary = json.loads(summary_path.read_text(encoding="utf-8"))
     raw_path = summary_path.with_name("raw.json")
@@ -1933,10 +2049,13 @@ def command_publish(args: argparse.Namespace) -> int:
             "raw evidence must be inside the skill directory before publication"
         ) from exc
     block = render_benchmark_block(summary, evidence_link)
-    readme_path.write_text(
-        replace_benchmark_block(readme_path.read_text(encoding="utf-8"), block),
-        encoding="utf-8",
+    updated_readme = replace_benchmark_block(
+        readme_path.read_text(encoding="utf-8"), block
     )
+    chart_path = readme_path.parent / BENCHMARK_CHART_PATH
+    chart_path.parent.mkdir(parents=True, exist_ok=True)
+    chart_path.write_text(render_benchmark_chart(summary), encoding="utf-8")
+    readme_path.write_text(updated_readme, encoding="utf-8")
     print(readme_path)
     return 0
 

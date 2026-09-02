@@ -75,7 +75,7 @@ path escapes, and paid-enabled manifests.
   their counts and reasons.
 - Aggregate median time, accomplishment rate, and median tokens by target and
   arm. Do not publish assertion percentage as accomplishment.
-- Generate a deterministic README block from a complete summary.
+- Generate a deterministic README block and SVG chart from a complete summary.
 - Recompute the summary from its sibling raw evidence before publication and
   reject partial-case runs, changed aggregates, stale skill or manifest files,
   or evidence outside the skill.
@@ -94,10 +94,14 @@ path escapes, and paid-enabled manifests.
 
 ## Per-skill README Contract
 
-Every `skills/*/README.md` has a marker-bounded `Benchmark` section. Until a
-complete result is committed, it says `Status: Unmeasured`. A measured block
-names the harness, model, repetitions, time, accomplishment rate, tokens,
-with-Weft delta, skill digest, manifest digest, date, and raw-result path.
+Every `skills/*/README.md` has a marker-bounded `Benchmark` section and embeds
+`benchmarks/chart.svg`. Until a complete result is committed, the README and
+chart say `Status: Unmeasured`; the chart must not show invented values. A
+measured chart compares `without_weft` with `with_weft` for time,
+accomplishment rate, and tokens. A measured block names the harness, model,
+repetitions, the same three metrics, with-Weft delta, skill digest, manifest
+digest, date, and raw-result path. Publication writes both artifacts, and
+validation reproduces both from the committed evidence.
 
 ## Acceptance
 
@@ -105,7 +109,7 @@ with-Weft delta, skill digest, manifest digest, date, and raw-result path.
 2. Dry-run shows paired Codex GPT-5.6-sol and Pi DeepSeek V4 Pro commands.
 3. Fixture executions prove success, failure, missing-token, timeout, and
    authentication-error classification without live model calls.
-4. Every current skill has a benchmark README section.
+4. Every current skill has a benchmark README section with a visible SVG chart.
 5. Independent review finds no P0/P1 correctness, measurement, command-injection,
    credential, or misleading-publication defect.
 

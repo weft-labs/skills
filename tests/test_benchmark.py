@@ -6,6 +6,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+import xml.etree.ElementTree as ET
 from unittest import mock
 
 
@@ -1376,6 +1377,20 @@ class BenchmarkContractTest(unittest.TestCase):
         block = self.benchmark.render_benchmark_block(
             summary, "benchmarks/results/raw.json"
         )
+        chart = self.benchmark.render_benchmark_chart(summary)
+        self.assertEqual(chart, self.benchmark.render_benchmark_chart(summary))
+        ET.fromstring(chart)
+        self.assertIn("Benchmark: fixture", chart)
+        self.assertIn("Codex · gpt", chart)
+        self.assertIn("Time", chart)
+        self.assertIn("Accomplishment rate", chart)
+        self.assertIn("Tokens", chart)
+        self.assertIn("Without skill", chart)
+        self.assertIn("With skill", chart)
+        self.assertIn("10 s", chart)
+        self.assertIn("33.3%", chart)
+        self.assertIn("100", chart)
+        self.assertIn("![Benchmark chart](benchmarks/chart.svg)", block)
         self.assertIn("Time", block)
         self.assertIn("Accomplishment rate", block)
         self.assertIn("Tokens", block)
@@ -1389,6 +1404,18 @@ class BenchmarkContractTest(unittest.TestCase):
         self.assertNotIn("\nold\n", updated)
         with self.assertRaisesRegex(ValueError, "exactly one"):
             self.benchmark.replace_benchmark_block(readme + readme, block)
+
+    def test_unmeasured_benchmark_has_a_visible_chart_without_fake_values(self):
+        chart = self.benchmark.render_unmeasured_chart()
+        ET.fromstring(chart)
+        self.assertIn("Benchmark not measured", chart)
+        self.assertIn("Time", chart)
+        self.assertIn("Accomplishment rate", chart)
+        self.assertIn("Tokens", chart)
+        self.assertNotIn(">0%</text>", chart)
+        block = self.benchmark.unmeasured_block()
+        self.assertIn("![Benchmark status](benchmarks/chart.svg)", block)
+        self.assertIn("Status: Unmeasured", block)
 
     def test_publication_recomputes_summary_from_local_raw_evidence(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -1479,6 +1506,33 @@ class BenchmarkContractTest(unittest.TestCase):
                 "runs": [run.to_dict() for run in runs],
             }
             self.benchmark.verify_publication(summary, raw, manifest, repo, evidence)
+
+            manifest_path = skill / "benchmarks" / "manifest.json"
+            manifest_path.parent.mkdir(parents=True, exist_ok=True)
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+            summary_path = evidence / "summary.json"
+            summary_path.write_text(json.dumps(summary), encoding="utf-8")
+            (evidence / "raw.json").write_text(json.dumps(raw), encoding="utf-8")
+            readme_path = skill / "README.md"
+            readme_path.write_text(
+                f"# Fixture\n\n{self.benchmark.unmeasured_block()}\n",
+                encoding="utf-8",
+            )
+            args = self.benchmark.argparse.Namespace(
+                manifest=str(manifest_path),
+                summary=str(summary_path),
+                readme=str(readme_path),
+            )
+            with mock.patch.object(self.benchmark, "ROOT", repo):
+                self.assertEqual(0, self.benchmark.command_publish(args))
+            self.assertIn(
+                "![Benchmark chart](benchmarks/chart.svg)",
+                readme_path.read_text(encoding="utf-8"),
+            )
+            self.assertEqual(
+                self.benchmark.render_benchmark_chart(summary),
+                (skill / "benchmarks" / "chart.svg").read_text(encoding="utf-8"),
+            )
 
             raw["test_evidence"] = True
             with self.assertRaisesRegex(ValueError, "test-harness evidence"):

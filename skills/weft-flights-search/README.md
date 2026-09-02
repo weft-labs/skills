@@ -18,5 +18,7 @@ python3 scripts/benchmark.py run --manifest skills/weft-flights-search/benchmark
 <!-- weft-benchmark:start -->
 ## Benchmark
 
+![Benchmark status](benchmarks/chart.svg)
+
 **Status: Unmeasured.** No reproducible with-Weft versus without-Weft result has been published for this skill yet.
 <!-- weft-benchmark:end -->

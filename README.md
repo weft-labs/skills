@@ -60,6 +60,9 @@ without Weft and with the selected Weft skill. It reports only three headline
 dimensions: end-to-end time, full-task accomplishment rate, and total agent
 tokens. Authentication, unavailable models, timeouts, and missing token
 telemetry are excluded and reported. They do not count as task failures.
+Each skill README embeds a visual comparison at `benchmarks/chart.svg`. Before
+a complete benchmark is published, that chart shows an explicit unmeasured
+state and no invented values.
 
 Run one manifest on any supported harness and model:
 
@@ -77,7 +80,7 @@ can select other Codex or Pi model identifiers. See the
 [architecture](docs/architecture/skill-benchmark-runner.md).
 
 After you inspect and move a complete result below the skill directory, publish
-its verified README table:
+its verified README table and SVG chart:
 
 ```sh
 python3 scripts/benchmark.py publish \
