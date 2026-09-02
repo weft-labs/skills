@@ -305,6 +305,8 @@ for rel, phrases in REQUIRED_CONTENT.items():
 # Relative links in every markdown file must resolve.
 for path in sorted(root.glob("skills/**/*.md")):
     rel = path.relative_to(root)
+    if "benchmarks" in rel.parts and "results" in rel.parts:
+        continue
     for target in re.findall(
         r"\]\(([^)#]+?)(?:#[^)]*)?\)", path.read_text(encoding="utf-8")
     ):

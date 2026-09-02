@@ -87,6 +87,8 @@ path escapes, and paid-enabled manifests.
   manifest repetition minimum for every target and every case.
 - Reparse token counts and final answers from the saved native harness stream,
   and require each raw run to match its saved `result.json`.
+- Treat saved model answers as opaque evidence. Repository link validation must
+  not interpret links generated inside those answers as repository links.
 - Reject publication if any run has a harness, telemetry, or environment
   exclusion. A failed committed check remains a measured task outcome. V0 does
   not estimate an effect from survivor-only data.
