@@ -1,0 +1,32 @@
+{
+  "harness": "codex",
+  "model": "gpt-5.6-sol",
+  "case_id": "unresolved-identity-stop",
+  "arm": "without_weft",
+  "repetition": 3,
+  "duration_seconds": 13.129734875052236,
+  "total_tokens": 17619,
+  "accomplished": true,
+  "answer": "## Offline brief\n\nThe original market (`fed-cut-before-december-2026`) cannot be reliably identified from the available offline data.\n\nThe canonical lookup returned no event. Search produced `fed-rate-cut-by-december-2026`, but its predicate differs from the original, so it cannot be treated as the same market without confirmation.\n\nUnavailable information includes the original market’s:\n\n- Full resolution rules\n- Market, condition, and question IDs\n- Outcome token IDs\n- Current market snapshot\n\nBecause identity and rules remain unresolved, no probability assessment, trading proposal, or paid action is appropriate.\n\nBEGIN_DECISION_RECORD\nMODE=BLOCKED\nIDENTITY=UNRESOLVED\nREPLACEMENT=UNCONFIRMED\nREPORT=BLOCKED\nRULES=UNAVAILABLE\nMARKET_SNAPSHOT=NOT_ATTEMPTED\nPROBABILITY=OMITTED\nPAID_ACTION=NONE\nTRADE_ACTION=NONE\nEND_DECISION_RECORD",
+  "checks": [
+    {
+      "id": "distinct-slugs-without-substitution",
+      "passed": true
+    },
+    {
+      "id": "blocked-identity-decisions",
+      "passed": true
+    },
+    {
+      "id": "blocked-action-boundary",
+      "passed": true
+    },
+    {
+      "id": "decision-record-at-end",
+      "passed": true
+    }
+  ],
+  "exclusion": null,
+  "exit_code": 0,
+  "run_path": "runs/codex/gpt-5.6-sol/unresolved-identity-stop/run-3/without_weft"
+}

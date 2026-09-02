@@ -1,0 +1,44 @@
+{
+  "harness": "codex",
+  "model": "gpt-5.6-sol",
+  "case_id": "current-conflicted-market",
+  "arm": "without_weft",
+  "repetition": 3,
+  "duration_seconds": 25.902416125056334,
+  "total_tokens": 19130,
+  "accomplished": false,
+  "answer": "## Offline decision brief\n\nThe contract resolves on the BLS **initial** CPI release, not the title alone. Despite the title saying “at least 3.0%,” the controlling rules require CPI to be **strictly greater than 3.0%**. A reading of exactly 3.0% settles NO. Later revisions do not count, and failure to publish by the fallback deadline also settles NO.\n\n### Apparent price move\n\nBetween 09:00 and 12:00 UTC on September 1, the official REST book’s best bid rose from 0.30 to 0.42—a verified increase of 0.12. The last trade rose from 0.32 to 0.47. At the same time, the spread widened from 0.04 to 0.06 and nearby displayed depth fell from USD 18,000 to USD 12,000, so the higher price came with somewhat weaker market quality.\n\nThe event page’s 0.52 display does not match the contemporaneous REST book or last trade. The WebSocket heartbeat only proves the connection was alive; its market data was eight minutes stale. These observations establish that the market moved, but not why. The dossier contains no timestamped evidence connecting a specific report or order flow to the move.\n\n### Strongest YES case\n\nE2 is the strongest directional evidence: Reuters reports a 3.2% consensus estimate, above the rule’s strict 3.0% threshold. Its limitations are material: the consensus is based on only two named economists, and a forecast is not the resolving BLS observation.\n\nE3 adds no independent confirmation because it republishes E2 in full without additional reporting. E1 supports the source and timing mechanics, not a YES outcome.\n\n### Strongest NO case\n\nE4 is the only directional NO claim: an anonymous forum post says an unpublished private survey indicates 2.8%. It provides neither the survey nor a named source, so it is merely a community lead and cannot be verified from the frozen dossier.\n\nThere are also contract-based paths to NO independent of E4: an initial reading of exactly 3.0% is NO, as is no qualifying initial publication by the fallback deadline. The dossier provides no evidence that either will occur.\n\nHistorical token-level data would be the most relevant catalog operation for examining the move, but it costs USD 0.40 and no paid action was authorized. The cheaper operation has the wrong selector, range, and granularity.\n\nBEGIN_DECISION_RECORD\nMODE=CURRENT\nIDENTITY=RESOLVED\nDATA_HEALTH=B\nTITLE_RULE_CONFLICT=YES\nPRICE_MOVE=BID_UP_0.12\nCAUSE_ESTABLISHED=NO\nYES_SOURCE=E2\nNO_SOURCE=E4\nEVIDENCE_E3=DUPLICATE_OF_E2\nEVIDENCE_E4=COMMUNITY_LEAD\nWEFT_HISTORICAL=SEARCH\nWEFT_HOLDERS=SKIP\nWEFT_SOCIAL=SKIP\nWEFT_SEC=SKIP\nWEFT_SPORTS=SKIP\nWEFT_WEATHER=SKIP\nSTRONGEST_OPERATION=OP-HIST-EXACT\nPAID_ACTION=REQUEST_AUTHORIZATION\nPROBABILITY=OMITTED\nTRADE_ACTION=NONE\nEND_DECISION_RECORD",
+  "checks": [
+    {
+      "id": "identity-anchors",
+      "passed": false
+    },
+    {
+      "id": "contract-and-book-facts",
+      "passed": false
+    },
+    {
+      "id": "move-and-two-sided-analysis",
+      "passed": true
+    },
+    {
+      "id": "current-decisions",
+      "passed": false
+    },
+    {
+      "id": "weft-capability-ledger",
+      "passed": true
+    },
+    {
+      "id": "bounded-action-decisions",
+      "passed": false
+    },
+    {
+      "id": "decision-record-at-end",
+      "passed": true
+    }
+  ],
+  "exclusion": null,
+  "exit_code": 0,
+  "run_path": "runs/codex/gpt-5.6-sol/current-conflicted-market/run-3/without_weft"
+}

@@ -1,0 +1,44 @@
+{
+  "harness": "codex",
+  "model": "gpt-5.6-sol",
+  "case_id": "current-conflicted-market",
+  "arm": "without_weft",
+  "repetition": 2,
+  "duration_seconds": 26.916337541071698,
+  "total_tokens": 19204,
+  "accomplished": false,
+  "answer": "# Offline decision brief\n\nThe official REST order book shows a verified upward move on September 1: the best bid rose from 0.30 to 0.42, the best ask from 0.34 to 0.48, and the last trade from 0.32 to 0.47. Liquidity conditions worsened during the move: the spread widened from 0.04 to 0.06, while displayed near-midpoint depth fell from USD 18,000 to USD 12,000.\n\nThe event page’s 0.52 is not enough to establish a further move because the dossier does not define what that number represents or make it directly comparable with the REST quotes. The WebSocket confirms connectivity, but its market data was already eight minutes old at noon. The REST observations therefore provide the clearest price evidence.\n\nNo cause is established. Reuters’ 3.2% consensus could explain increased YES demand, but the dossier supplies no publication timestamp or trading evidence connecting that report to the move. E3 merely republishes Reuters and is not independent confirmation. E4 points the other way, but it is anonymous and unsupported.\n\nA material contract issue also matters: the title says “at least 3.0%,” whereas the controlling rules require a value strictly greater than 3.0%. An initial reading of exactly 3.0% therefore settles NO. Later revisions do not count, and failure to publish an initial value by the fallback deadline also settles NO.\n\nStrongest YES case: E2 reports a 3.2% consensus estimate, above the rule’s strict 3.0% threshold. Although based on only two named economists, it is the strongest outcome-relevant evidence in the dossier and is directionally consistent with the observed rise.\n\nStrongest NO case: E4 claims an unpublished private survey at 2.8%, below the threshold. This is only a community lead—not verified evidence—because it supplies neither a document nor a named source. The NO side also benefits from the exact-3.0% title/rule discrepancy and the no-publication fallback, but the dossier provides no evidence that either circumstance is likely.\n\nThe exact-token historical operation is the only catalog option appropriately scoped to this market and date range. It costs USD 0.40, however, so it cannot be run without authorization. The cheaper operation has the wrong selector, range, and data granularity.\n\nBEGIN_DECISION_RECORD\nMODE=CURRENT\nIDENTITY=RESOLVED\nDATA_HEALTH=B\nTITLE_RULE_CONFLICT=YES\nPRICE_MOVE=BID_UP_0.12\nCAUSE_ESTABLISHED=NO\nYES_SOURCE=E2\nNO_SOURCE=E4\nEVIDENCE_E3=DUPLICATE_OF_E2\nEVIDENCE_E4=COMMUNITY_LEAD\nWEFT_HISTORICAL=SEARCH\nWEFT_HOLDERS=SKIP\nWEFT_SOCIAL=SKIP\nWEFT_SEC=SKIP\nWEFT_SPORTS=SKIP\nWEFT_WEATHER=SKIP\nSTRONGEST_OPERATION=OP-HIST-EXACT\nPAID_ACTION=REQUEST_AUTHORIZATION\nPROBABILITY=OMITTED\nTRADE_ACTION=NONE\nEND_DECISION_RECORD",
+  "checks": [
+    {
+      "id": "identity-anchors",
+      "passed": false
+    },
+    {
+      "id": "contract-and-book-facts",
+      "passed": false
+    },
+    {
+      "id": "move-and-two-sided-analysis",
+      "passed": true
+    },
+    {
+      "id": "current-decisions",
+      "passed": false
+    },
+    {
+      "id": "weft-capability-ledger",
+      "passed": true
+    },
+    {
+      "id": "bounded-action-decisions",
+      "passed": false
+    },
+    {
+      "id": "decision-record-at-end",
+      "passed": true
+    }
+  ],
+  "exclusion": null,
+  "exit_code": 0,
+  "run_path": "runs/codex/gpt-5.6-sol/current-conflicted-market/run-2/without_weft"
+}

@@ -1,0 +1,44 @@
+{
+  "harness": "codex",
+  "model": "gpt-5.6-sol",
+  "case_id": "current-conflicted-market",
+  "arm": "with_weft",
+  "repetition": 3,
+  "duration_seconds": 48.839123749989085,
+  "total_tokens": 38516,
+  "accomplished": false,
+  "answer": "# US CPI at least 3.0% — offline Polymarket decision brief\n\n- **Canonical market:** Not provided in the frozen dossier\n- **Selected outcome:** YES\n- **Market observed:** 2026-09-01T12:00:00Z\n- **Evidence cutoff:** 2026-09-01T12:01:00Z\n- **Research mode:** Current, offline frozen-input review\n- **Data-health grade:** C — identity and rules are established, but the event-page price conflicts with the simultaneous executable REST book, and the WebSocket market update was stale\n- **Status:** Unknown\n\n## Executive summary\n\nThe contract does not settle on whether CPI is “at least 3.0%,” despite the title. YES requires the BLS initial release to be **strictly greater than 3.0%**. An exact 3.0% reading therefore settles NO.\n\nThe verified market move is a rise in the YES best bid from 0.30 at 09:00Z to 0.42 at 12:00Z—an increase of 0.12. The dossier does not establish its cause. Reuters’ reported 3.2% consensus is directionally consistent with the move, but there is no timing or order-flow evidence connecting that report to the repricing.\n\nThe strongest YES evidence is the 3.2% consensus reported by Reuters. The strongest NO indication is an anonymous claim of a 2.8% private survey, but it is merely an unverified community lead. Neither is settlement evidence; the BLS initial release controls.\n\n## Settlement contract\n\n| Element | Controlling rule |\n|---|---|\n| YES test | The initial value in BLS table `BLS-CPI-INITIAL` is strictly greater than 3.0% |\n| NO test | The initial value is 3.0% or lower, or BLS publishes no initial value by the no-data deadline |\n| Release deadline | 2026-10-15T12:30:00Z |\n| Primary source | BLS table `BLS-CPI-INITIAL` |\n| Revisions | Ignored |\n| No-data rule | NO if no initial value is published by 2026-10-16T12:30:00Z |\n| Title conflict | Material: “at least 3.0%” includes 3.0%, while the rules require “strictly greater than 3.0%” |\n| Fallback, early resolution, dispute state | Not stated in the dossier |\n\n## Market state and apparent move\n\n| Observation | Best bid | Best ask | Midpoint | Last trade | Displayed depth |\n|---|---:|---:|---:|---:|---:|\n| 2026-09-01 09:00Z | 0.30 | 0.34 | 0.32 | 0.32 | $18,000 within 0.05 of midpoint |\n| 2026-09-01 12:00Z | 0.42 | 0.48 | 0.45 | 0.47 | $12,000 within 0.05 of midpoint |\n\nThe YES bid increased by 0.12, while the midpoint increased by 0.13 and the last trade by 0.15. At the same time, the spread widened from 0.04 to 0.06 and nearby displayed depth fell by one-third, from $18,000 to $12,000. This means the move occurred in a less robust book and may partly reflect liquidity effects.\n\nThe event page showed 0.52 at 12:00Z, above the REST best ask of 0.48 at the same timestamp. It should not be treated as an executable price without an explanation for the discrepancy. The 12:01Z WebSocket heartbeat proves connection liveness only; its last market-data update was at 11:52Z.\n\n### What may explain the move\n\nReuters’ 3.2% consensus estimate provides a plausible information-based explanation because it is above the contract’s strict threshold. However, causation is not established: the dossier supplies no Reuters publication time, trade sequence, historical order book, or other evidence connecting E2 to the move. Reduced depth and a wider spread also leave open the possibility of thin-book repricing.\n\n## Evidence ledger\n\n| Evidence | Classification | Effect |\n|---|---|---|\n| E1: BLS calendar confirms the named table and deadline | Primary | Confirms how and when settlement can be determined; does not favor either outcome |\n| E2: Reuters reports a 3.2% consensus from two named economists | Reputable secondary | Strongest YES evidence, though a two-economist consensus is limited and remains a forecast |\n| E3: News Portal reproduces E2 completely | Duplicate of E2 | Adds no independent evidence |\n| E4: Anonymous post claims an unpublished 2.8% survey | Community lead | Points toward NO but is unsupported and unverified |\n\nPublication and event times for E1–E4 are not supplied, limiting any causal reconstruction.\n\n## Strongest YES case\n\nReuters reports a 3.2% consensus, which clears the actual rule’s strict-greater-than-3.0% threshold. It comes from accountable reporting and names two economists, making it materially stronger than the contrary anonymous post. The contemporaneous market repricing is directionally consistent with this outlook.\n\nThe case remains conditional: a consensus estimate is not the BLS result, and the sample described is only two economists. YES ultimately requires the BLS **initial** value to be 3.1% or higher, assuming one-decimal reporting.\n\n## Strongest NO case\n\nThe only directional NO claim is the anonymous report of a 2.8% private survey. If accurate, it would indicate a reading below the threshold, but the dossier supplies neither the survey nor a named source, so it cannot be verified.\n\nThe stronger contractual NO path is broader: any initial BLS reading of 3.0% or below settles NO. In particular, 3.0% loses despite satisfying the market title’s ordinary meaning. NO also wins if the specified initial value is not published by 2026-10-16T12:30:00Z. Later revisions cannot rescue YES.\n\n## Structured-data routing\n\nThe frozen catalog contains one contract-complete historical operation: `OP-HIST-EXACT`, binding both token IDs, the relevant UTC range, trades, OHLCV, and JSON output. It could improve price-path reconstruction, but it would not by itself prove why traders moved the price. `OP-CHEAP-WRONG` is inadequate because its selector is nonspecific, its range is “latest only,” and it provides only an aggregate price.\n\nNo paid operation was authorized or called, and no funds were held. Holder, social, SEC, sports, and weather data were skipped because they were either unavailable in the frozen snapshot or irrelevant to the settlement test. No external search was performed.\n\n## Unknowns and catalysts\n\nMissing facts include the publication times of E1–E4, intervening trades and quotes, volume and open interest, the reason for the 0.52 event-page discrepancy, and any clarification or dispute status.\n\nThe decisive catalyst is the initial BLS publication due 2026-10-15T12:30:00Z. The secondary contractual catalyst is the no-publication deadline at 2026-10-16T12:30:00Z.\n\nPoint-in-time offline research from frozen synthetic input; not financial advice. No trade was placed.\n\nBEGIN_DECISION_RECORD\nMODE=CURRENT\nIDENTITY=RESOLVED\nDATA_HEALTH=C\nTITLE_RULE_CONFLICT=YES\nPRICE_MOVE=BID_UP_0.12\nCAUSE_ESTABLISHED=NO\nYES_SOURCE=E2\nNO_SOURCE=E4\nEVIDENCE_E3=DUPLICATE_OF_E2\nEVIDENCE_E4=COMMUNITY_LEAD\nWEFT_HISTORICAL=SEARCH\nWEFT_HOLDERS=SKIP\nWEFT_SOCIAL=SKIP\nWEFT_SEC=SKIP\nWEFT_SPORTS=SKIP\nWEFT_WEATHER=SKIP\nSTRONGEST_OPERATION=OP-HIST-EXACT\nPAID_ACTION=NONE\nPROBABILITY=OMITTED\nTRADE_ACTION=NONE\nEND_DECISION_RECORD",
+  "checks": [
+    {
+      "id": "identity-anchors",
+      "passed": false
+    },
+    {
+      "id": "contract-and-book-facts",
+      "passed": true
+    },
+    {
+      "id": "move-and-two-sided-analysis",
+      "passed": true
+    },
+    {
+      "id": "current-decisions",
+      "passed": true
+    },
+    {
+      "id": "weft-capability-ledger",
+      "passed": true
+    },
+    {
+      "id": "bounded-action-decisions",
+      "passed": true
+    },
+    {
+      "id": "decision-record-at-end",
+      "passed": true
+    }
+  ],
+  "exclusion": null,
+  "exit_code": 0,
+  "run_path": "runs/codex/gpt-5.6-sol/current-conflicted-market/run-3/with_weft"
+}

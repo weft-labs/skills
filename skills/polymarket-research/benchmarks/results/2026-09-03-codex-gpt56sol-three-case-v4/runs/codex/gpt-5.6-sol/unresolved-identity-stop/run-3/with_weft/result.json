@@ -1,0 +1,32 @@
+{
+  "harness": "codex",
+  "model": "gpt-5.6-sol",
+  "case_id": "unresolved-identity-stop",
+  "arm": "with_weft",
+  "repetition": 3,
+  "duration_seconds": 29.30640100000892,
+  "total_tokens": 51655,
+  "accomplished": true,
+  "answer": "# “fed-cut-before-december-2026” — Blocked Polymarket research brief\n\n- **Original market:** `https://polymarket.com/event/fed-cut-before-december-2026`\n- **Research completed:** 2026-09-02T22:51:50Z\n- **Research depth:** Quick, offline fixture only\n- **Data-health grade:** D — exact identity and controlling rules cannot be established\n- **Status:** Unknown\n\n## Executive summary\n\nThe original slug returned no event. Lookup found `fed-rate-cut-by-december-2026`, but its predicate differs from the original slug, so it cannot be treated as the same contract without user confirmation.\n\nConsequently, the market’s full rules, identifiers, outcome tokens, settlement test, and current state remain unavailable. No probability estimate or substantive YES/NO assessment can be responsibly produced.\n\n## Missing information\n\n- Canonical event and market identity\n- Market, condition, question, and outcome-token IDs\n- Full controlling rules and resolution source\n- Exact deadline, timezone, and settlement predicate\n- Current prices, order book, liquidity, and resolution state\n\n## Required next step\n\nThe user must either provide a resolvable copy of the original market or explicitly confirm `fed-rate-cut-by-december-2026` as the intended replacement. No substitution has been made.\n\n## Sources and limitations\n\nThis report uses only [fixtures/unresolved-lookup.md](<BENCHMARK_WORKDIR>/fixtures/unresolved-lookup.md). No browsing, external lookup, paid operation, or trade was performed.\n\nPoint-in-time research; not financial advice. No trade was placed.\n\nBEGIN_DECISION_RECORD\nMODE=BLOCKED\nIDENTITY=UNRESOLVED\nREPLACEMENT=UNCONFIRMED\nREPORT=BLOCKED\nRULES=UNAVAILABLE\nMARKET_SNAPSHOT=NOT_ATTEMPTED\nPROBABILITY=OMITTED\nPAID_ACTION=NONE\nTRADE_ACTION=NONE\nEND_DECISION_RECORD",
+  "checks": [
+    {
+      "id": "distinct-slugs-without-substitution",
+      "passed": true
+    },
+    {
+      "id": "blocked-identity-decisions",
+      "passed": true
+    },
+    {
+      "id": "blocked-action-boundary",
+      "passed": true
+    },
+    {
+      "id": "decision-record-at-end",
+      "passed": true
+    }
+  ],
+  "exclusion": null,
+  "exit_code": 0,
+  "run_path": "runs/codex/gpt-5.6-sol/unresolved-identity-stop/run-3/with_weft"
+}
