@@ -198,7 +198,7 @@ EVIDENCE_E3=DUPLICATE_OF_E2
 EVIDENCE_E4=COMMUNITY_LEAD
 WEFT_HISTORICAL=SEARCH
 WEFT_HOLDERS=SKIP
-WEFT_SOCIAL=SEARCH
+WEFT_SOCIAL=SKIP
 WEFT_SEC=SKIP
 WEFT_SPORTS=SKIP
 WEFT_WEATHER=SKIP
@@ -297,6 +297,20 @@ END_DECISION_RECORD""",
             "Ask the user for confirmation before using the replacement.",
             "Do not substitute it unless the user confirms the replacement.",
         )
+        safe_warranted_wording = adjudicated[
+            "historical-cutoff-integrity"
+        ].replace(
+            "BEGIN_DECISION_RECORD",
+            "No independent probability or trade action is warranted.\nBEGIN_DECISION_RECORD",
+        )
+        temporal_wording = adjudicated["historical-cutoff-integrity"].replace(
+            "Publication, event, retrieval, and observation times were considered",
+            "Items were published, events occurred, files were retrieved, and trades were observed",
+        )
+        pending_wording = adjudicated["unresolved-identity-stop"].replace(
+            "Ask the user for confirmation before using the replacement.",
+            "The brief is blocked pending confirmation of the replacement.",
+        )
         self.assertRegex(
             safe_wording,
             checks_by_case["current-conflicted-market"]["bounded-action-decisions"],
@@ -309,6 +323,22 @@ END_DECISION_RECORD""",
         )
         self.assertRegex(
             stop_wording,
+            checks_by_case["unresolved-identity-stop"][
+                "distinct-slugs-and-confirmation"
+            ],
+        )
+        self.assertRegex(
+            safe_warranted_wording,
+            checks_by_case["historical-cutoff-integrity"][
+                "historical-action-boundary"
+            ],
+        )
+        self.assertRegex(
+            temporal_wording,
+            checks_by_case["historical-cutoff-integrity"]["temporal-ledger"],
+        )
+        self.assertRegex(
+            pending_wording,
             checks_by_case["unresolved-identity-stop"][
                 "distinct-slugs-and-confirmation"
             ],
