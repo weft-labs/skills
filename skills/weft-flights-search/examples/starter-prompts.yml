@@ -1,0 +1,15 @@
+version: 1
+prompts:
+  - title: Compare a round trip
+    prompt: >-
+      Find the cheapest nonstop round-trip flights from Berlin to Bari for two
+      adults, departing 14 October and returning 21 October. Include nearby
+      airports reachable within 90 minutes by public transport, one checked bag
+      per person, and comparable flight-plus-transfer totals. Do not book
+      anything.
+  - title: Check nearby airports
+    prompt: >-
+      Compare nonstop flights from my region to <destination> on <dates>. Check
+      nearby origin and destination airports only when the ground transfer is
+      under <time limit>. Show schedules, baggage basis, transfer cost, total
+      cost, and the evidence for each viable option. Do not book anything.

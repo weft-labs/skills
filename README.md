@@ -36,6 +36,11 @@ Use the space-separated `--skill <name>` form. Do not use
 `--skill=<name>`; affected Skills CLI versions can ignore that filter and
 install every skill in the repository.
 
+Each optional workflow also owns a `1600x900` `cover.webp` beside its
+`SKILL.md`. The public repository contains the finished cover, not Weft's
+internal mascot source or generation workflow. Core skills do not appear in the
+gallery and do not need a cover.
+
 Or point an agent at the hosted copies:
 
 - Setup (start here): `https://weft.network/setup.md`
