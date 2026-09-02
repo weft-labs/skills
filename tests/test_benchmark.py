@@ -318,6 +318,11 @@ class BenchmarkContractTest(unittest.TestCase):
 
     def test_manifest_requires_independent_truth_and_safe_paths(self):
         payload = json.loads((FIXTURE / "manifest.json").read_text())
+        del payload["claim_scope"]
+        with self.assertRaisesRegex(ValueError, "claim_scope"):
+            self.benchmark.validate_manifest(payload, ROOT)
+
+        payload = json.loads((FIXTURE / "manifest.json").read_text())
         payload["skills"] = [None]
         with self.assertRaisesRegex(ValueError, "relative path string"):
             self.benchmark.validate_manifest(payload, ROOT)
@@ -1337,11 +1342,20 @@ class BenchmarkContractTest(unittest.TestCase):
     def test_readme_publication_uses_only_three_headline_dimensions(self):
         summary = {
             "skill": "fixture",
+            "claim_scope": "Instruction-following on one frozen task. This does not measure live research.",
             "generated_at": "2026-09-01T00:00:00Z",
             "manifest_digest": "m1",
             "skill_digest": "s1",
             "minimum_repetitions": 3,
             "repetitions_run": 5,
+            "case_ids": ["case"],
+            "targets": [
+                {
+                    "harness": "codex",
+                    "model": "gpt",
+                    "harness_version": "codex 1.0",
+                }
+            ],
             "results": [
                 {
                     "harness": "codex",
@@ -1374,23 +1388,60 @@ class BenchmarkContractTest(unittest.TestCase):
                 }
             ],
         }
+        raw = {
+            "runs": [
+                self.benchmark.RunResult.fixture(
+                    "codex",
+                    "gpt",
+                    "case",
+                    arm,
+                    repetition,
+                    duration,
+                    tokens,
+                    accomplished,
+                ).to_dict()
+                for repetition, values in enumerate(
+                    (
+                        ((9.0, 90, False), (11.0, 120, True)),
+                        ((10.0, 100, False), (12.0, 130, True)),
+                        ((11.0, 110, True), (13.0, 140, True)),
+                    ),
+                    start=1,
+                )
+                for arm, (duration, tokens, accomplished) in zip(
+                    self.benchmark.ARMS, values, strict=True
+                )
+            ]
+        }
         block = self.benchmark.render_benchmark_block(
             summary, "benchmarks/results/raw.json"
         )
-        chart = self.benchmark.render_benchmark_chart(summary)
-        self.assertEqual(chart, self.benchmark.render_benchmark_chart(summary))
+        chart = self.benchmark.render_benchmark_chart(summary, raw)
+        self.assertEqual(chart, self.benchmark.render_benchmark_chart(summary, raw))
         ET.fromstring(chart)
-        self.assertIn("Benchmark: fixture", chart)
+        self.assertIn("Benchmark evidence: fixture", chart)
         self.assertIn("Codex · gpt", chart)
+        self.assertIn("Harness codex 1.0", chart)
         self.assertIn("Time", chart)
         self.assertIn("Accomplishment rate", chart)
         self.assertIn("Tokens", chart)
         self.assertIn("Without skill", chart)
         self.assertIn("With skill", chart)
-        self.assertIn("10 s", chart)
-        self.assertIn("33.3%", chart)
-        self.assertIn("100", chart)
+        self.assertIn("Every dot and line is one valid paired run", chart)
+        self.assertIn("95% Wilson CI", chart)
+        self.assertIn("n=3 valid pairs", chart)
+        self.assertIn("1/3", chart)
+        self.assertIn("3/3", chart)
+        self.assertIn("Improved 2 · regressed 0 · unchanged 1", chart)
+        self.assertEqual(6, chart.count('data-pair="'))
+        low, high = self.benchmark.wilson_interval(1, 3)
+        self.assertAlmostEqual(0.0615, low, places=4)
+        self.assertAlmostEqual(0.7923, high, places=4)
         self.assertIn("![Benchmark chart](benchmarks/chart.svg)", block)
+        self.assertIn("Claim scope:", block)
+        self.assertIn("Observed difference", block)
+        self.assertNotIn("Weft impact", block)
+        self.assertIn("descriptive", block)
         self.assertIn("Time", block)
         self.assertIn("Accomplishment rate", block)
         self.assertIn("Tokens", block)
@@ -1408,11 +1459,14 @@ class BenchmarkContractTest(unittest.TestCase):
     def test_unmeasured_benchmark_has_a_visible_chart_without_fake_values(self):
         chart = self.benchmark.render_unmeasured_chart()
         ET.fromstring(chart)
-        self.assertIn("Benchmark not measured", chart)
+        self.assertIn("Benchmark evidence is unmeasured", chart)
         self.assertIn("Time", chart)
         self.assertIn("Accomplishment rate", chart)
         self.assertIn("Tokens", chart)
         self.assertNotIn(">0%</text>", chart)
+        self.assertNotIn("<circle", chart)
+        self.assertNotIn("<line", chart)
+        self.assertIn("No observations are published", chart)
         block = self.benchmark.unmeasured_block()
         self.assertIn("![Benchmark status](benchmarks/chart.svg)", block)
         self.assertIn("Status: Unmeasured", block)
@@ -1428,6 +1482,7 @@ class BenchmarkContractTest(unittest.TestCase):
             manifest = {
                 "version": 1,
                 "skill": "fixture",
+                "claim_scope": "Instruction-following on one frozen task. This does not measure live research.",
                 "skills": ["skills/fixture"],
                 "minimum_repetitions": 3,
                 "paid_actions": {"enabled": False},
@@ -1487,6 +1542,7 @@ class BenchmarkContractTest(unittest.TestCase):
             )
             summary["case_ids"] = ["case"]
             summary["manifest_case_ids"] = ["case"]
+            summary["claim_scope"] = manifest["claim_scope"]
             summary["targets"] = [
                 {"harness": "codex", "model": "gpt", "harness_version": "fixture"}
             ]
@@ -1494,6 +1550,7 @@ class BenchmarkContractTest(unittest.TestCase):
             summary["repetitions_run"] = 3
             raw = {
                 "skill": "fixture",
+                "claim_scope": manifest["claim_scope"],
                 "generated_at": summary["generated_at"],
                 "manifest_digest": manifest_digest,
                 "skill_digest": skill_digest,
@@ -1530,7 +1587,7 @@ class BenchmarkContractTest(unittest.TestCase):
                 readme_path.read_text(encoding="utf-8"),
             )
             self.assertEqual(
-                self.benchmark.render_benchmark_chart(summary),
+                self.benchmark.render_benchmark_chart(summary, raw),
                 (skill / "benchmarks" / "chart.svg").read_text(encoding="utf-8"),
             )
 
@@ -1633,6 +1690,7 @@ class BenchmarkContractTest(unittest.TestCase):
         manifest = {
             "version": 1,
             "skill": "fixture-weft-skill",
+            "claim_scope": "Instruction-following on two frozen fixture tasks. This does not measure live external work.",
             "skills": ["tests/fixtures/benchmark/skill"],
             "minimum_repetitions": 1,
             "paid_actions": {"enabled": False},

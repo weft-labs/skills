@@ -1,31 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="600" height="504" viewBox="0 0 600 504" role="img" aria-labelledby="title desc">
-  <title id="title">Benchmark not measured</title>
-  <desc id="desc">No reproducible without skill and with skill comparison has been published.</desc>
-  <rect width="100%" height="100%" rx="18" fill="#f8fafc"/>
-  <text x="32" y="42" fill="#0f172a" font-family="ui-sans-serif, system-ui, sans-serif" font-size="24" font-weight="700">Benchmark not measured</text>
-  <text x="32" y="68" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14">Run the committed benchmark to compare without skill and with skill.</text>
-  <rect x="24" y="88" width="552" height="120" rx="12" fill="#ffffff" stroke="#cbd5e1"/>
-  <text x="40" y="113" fill="#334155" font-family="ui-sans-serif, system-ui, sans-serif" font-size="17" font-weight="700">Time</text>
-  <text x="40" y="138" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">Without skill</text>
-  <text x="560" y="138" text-anchor="end" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="14">—</text>
-  <line x1="40" y1="148" x2="560" y2="148" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" stroke-dasharray="2 18"/>
-  <text x="40" y="181" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">With skill</text>
-  <text x="560" y="181" text-anchor="end" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="14">—</text>
-  <line x1="40" y1="191" x2="560" y2="191" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" stroke-dasharray="2 18"/>
-  <rect x="24" y="224" width="552" height="120" rx="12" fill="#ffffff" stroke="#cbd5e1"/>
-  <text x="40" y="249" fill="#334155" font-family="ui-sans-serif, system-ui, sans-serif" font-size="17" font-weight="700">Accomplishment rate</text>
-  <text x="40" y="274" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">Without skill</text>
-  <text x="560" y="274" text-anchor="end" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="14">—</text>
-  <line x1="40" y1="284" x2="560" y2="284" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" stroke-dasharray="2 18"/>
-  <text x="40" y="317" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">With skill</text>
-  <text x="560" y="317" text-anchor="end" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="14">—</text>
-  <line x1="40" y1="327" x2="560" y2="327" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" stroke-dasharray="2 18"/>
-  <rect x="24" y="360" width="552" height="120" rx="12" fill="#ffffff" stroke="#cbd5e1"/>
-  <text x="40" y="385" fill="#334155" font-family="ui-sans-serif, system-ui, sans-serif" font-size="17" font-weight="700">Tokens</text>
-  <text x="40" y="410" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">Without skill</text>
-  <text x="560" y="410" text-anchor="end" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="14">—</text>
-  <line x1="40" y1="420" x2="560" y2="420" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" stroke-dasharray="2 18"/>
-  <text x="40" y="453" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">With skill</text>
-  <text x="560" y="453" text-anchor="end" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="14">—</text>
-  <line x1="40" y1="463" x2="560" y2="463" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" stroke-dasharray="2 18"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="260" viewBox="0 0 600 260" role="img" aria-labelledby="title desc">
+  <title id="title">Benchmark evidence is unmeasured</title>
+  <desc id="desc">No observations, estimates, intervals, or comparisons are published.</desc>
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <text x="24" y="38" fill="#0f172a" font-family="ui-sans-serif, system-ui, sans-serif" font-size="22" font-weight="700">Benchmark evidence</text>
+  <text x="24" y="72" fill="#9f1239" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16" font-weight="700">UNMEASURED</text>
+  <text x="24" y="101" fill="#334155" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14">No observations are published.</text>
+  <text x="24" y="128" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">Time: not estimated</text>
+  <text x="24" y="151" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">Accomplishment rate: not estimated</text>
+  <text x="24" y="174" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">Tokens: not estimated</text>
+  <text x="24" y="211" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">Publication requires complete paired runs, raw evidence, exact harness</text>
+  <text x="24" y="230" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">and model versions, reproducible grading, and visible exclusions.</text>
 </svg>

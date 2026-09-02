@@ -1,6 +1,7 @@
 {
   "version": 1,
   "skill": "weft-flights-search",
+  "claim_scope": "Instruction-following on one frozen flight-planning task. This does not measure live fare coverage, booking success, or travel outcomes.",
   "skills": [
     "skills/weft",
     "skills/weft-flights-search"

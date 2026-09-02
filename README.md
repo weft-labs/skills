@@ -60,9 +60,11 @@ without Weft and with the selected Weft skill. It reports only three headline
 dimensions: end-to-end time, full-task accomplishment rate, and total agent
 tokens. Authentication, unavailable models, timeouts, and missing token
 telemetry are excluded and reported. They do not count as task failures.
-Each skill README embeds a visual comparison at `benchmarks/chart.svg`. Before
-a complete benchmark is published, that chart shows an explicit unmeasured
-state and no invented values.
+Each skill README embeds an evidence plot at `benchmarks/chart.svg`. A measured
+plot shows every valid paired time and token observation, medians, exact
+accomplishments with 95% Wilson intervals, paired outcome changes, sample size,
+exclusions, and the exact harness version. Before a complete benchmark is
+published, that plot is blank and shows an explicit unmeasured state.
 
 Run one manifest on any supported harness and model:
 

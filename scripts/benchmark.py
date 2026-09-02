@@ -269,6 +269,11 @@ def validate_manifest(payload: dict, repo_root: pathlib.Path = ROOT) -> dict:
         raise ValueError("manifest version must be 1")
     if not isinstance(payload.get("skill"), str) or not payload["skill"].strip():
         raise ValueError("manifest skill must be a non-empty string")
+    if (
+        not isinstance(payload.get("claim_scope"), str)
+        or not payload["claim_scope"].strip()
+    ):
+        raise ValueError("manifest claim_scope must be a non-empty string")
     skills = payload.get("skills")
     if not isinstance(skills, list) or not skills:
         raise ValueError("manifest skills must contain at least one skill directory")
@@ -1492,12 +1497,20 @@ def verify_publication(
         or summary.get("test_evidence") is not False
     ):
         raise ValueError("test-harness evidence cannot be published")
-    for field in ("skill", "manifest_digest", "skill_digest", "generated_at"):
+    for field in (
+        "skill",
+        "claim_scope",
+        "manifest_digest",
+        "skill_digest",
+        "generated_at",
+    ):
         if summary.get(field) != raw.get(field):
             raise ValueError(f"summary and raw evidence have different {field}")
     validate_generated_at(summary.get("generated_at"))
     if summary.get("skill") != manifest.get("skill"):
         raise ValueError("benchmark manifest and evidence have different skill names")
+    if summary.get("claim_scope") != manifest.get("claim_scope"):
+        raise ValueError("benchmark evidence does not match the manifest claim scope")
     current_manifest_digest = canonical_digest(manifest)
     if summary.get("manifest_digest") != current_manifest_digest:
         raise ValueError("benchmark evidence does not match the current manifest")
@@ -1667,8 +1680,163 @@ def chart_text(value: object) -> str:
     return html.escape(str(value), quote=True)
 
 
-def render_benchmark_chart(summary: dict) -> str:
+def wilson_interval(successes: int, total: int) -> tuple[float, float]:
+    if total < 1 or successes < 0 or successes > total:
+        raise ValueError("Wilson interval requires 0 <= successes <= total")
+    z = 1.959963984540054
+    proportion = successes / total
+    denominator = 1 + z * z / total
+    center = (proportion + z * z / (2 * total)) / denominator
+    half_width = (
+        z
+        * math.sqrt(
+            proportion * (1 - proportion) / total + z * z / (4 * total * total)
+        )
+        / denominator
+    )
+    return max(0.0, center - half_width), min(1.0, center + half_width)
+
+
+def target_raw_pairs(raw: dict, harness: str, model: str) -> list[tuple[dict, dict]]:
+    grouped: dict[tuple[str, int], dict[str, dict]] = defaultdict(dict)
+    for run in raw["runs"]:
+        if run["harness"] == harness and run["model"] == model:
+            grouped[(run["case_id"], run["repetition"])][run["arm"]] = run
     pairs = []
+    for key in sorted(grouped):
+        arms = grouped[key]
+        if all(arm in arms and arms[arm].get("exclusion") is None for arm in ARMS):
+            pairs.append((arms["without_weft"], arms["with_weft"]))
+    return pairs
+
+
+def target_version(summary: dict, harness: str, model: str) -> str:
+    for target in summary.get("targets", []):
+        if target.get("harness") == harness and target.get("model") == model:
+            return str(target.get("harness_version", "unreported"))
+    return "unreported"
+
+
+def plot_x(value: float | int, maximum: float | int) -> float:
+    return 170 + 390 * float(value) / (float(maximum) or 1.0)
+
+
+def render_distribution_panel(
+    lines: list[str],
+    y: int,
+    title: str,
+    field: str,
+    suffix: str,
+    pairs: list[tuple[dict, dict]],
+    without_median: float | int,
+    with_median: float | int,
+) -> None:
+    values = [pair[index][field] for pair in pairs for index in (0, 1)]
+    maximum = max(values) if values else 1
+    axis_label = f"{chart_number(maximum)}{suffix}"
+    lines.extend(
+        [
+            f'  <text x="32" y="{y + 22}" fill="#0f172a" font-family="ui-sans-serif, system-ui, sans-serif" font-size="17" font-weight="700">{title}</text>',
+            f'  <line x1="170" y1="{y + 43}" x2="560" y2="{y + 43}" stroke="#94a3b8"/>',
+            f'  <text x="170" y="{y + 37}" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="11">0</text>',
+            f'  <text x="560" y="{y + 37}" text-anchor="end" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="11">{axis_label}</text>',
+            f'  <text x="32" y="{y + 82}" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">Without skill</text>',
+            f'  <text x="560" y="{y + 65}" text-anchor="end" fill="#334155" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12">median {chart_number(without_median)}{suffix}</text>',
+            f'  <text x="32" y="{y + 128}" fill="#0f766e" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">With skill</text>',
+            f'  <text x="560" y="{y + 111}" text-anchor="end" fill="#0f766e" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12">median {chart_number(with_median)}{suffix}</text>',
+        ]
+    )
+    for index, (without, with_skill) in enumerate(pairs):
+        jitter = (index % 7 - 3) * 1.4
+        without_x = plot_x(without[field], maximum)
+        with_x = plot_x(with_skill[field], maximum)
+        pair_id = chart_text(f"{without['case_id']}:{without['repetition']}")
+        lines.append(
+            f'  <line data-pair="{pair_id}" x1="{without_x:.2f}" y1="{y + 78 + jitter:.2f}" x2="{with_x:.2f}" y2="{y + 124 + jitter:.2f}" stroke="#94a3b8" stroke-width="1" opacity="0.65"/>'
+        )
+    for index, (without, with_skill) in enumerate(pairs):
+        jitter = (index % 7 - 3) * 1.4
+        pair_label = chart_text(
+            f"{without['case_id']} repetition {without['repetition']}"
+        )
+        lines.extend(
+            [
+                f'  <circle cx="{plot_x(without[field], maximum):.2f}" cy="{y + 78 + jitter:.2f}" r="4" fill="#475569" aria-label="Without skill, {pair_label}, {chart_number(without[field])}{suffix}"/>',
+                f'  <circle cx="{plot_x(with_skill[field], maximum):.2f}" cy="{y + 124 + jitter:.2f}" r="4" fill="#0f766e" aria-label="With skill, {pair_label}, {chart_number(with_skill[field])}{suffix}"/>',
+            ]
+        )
+    for row_y, value, color in (
+        (y + 78, without_median, "#334155"),
+        (y + 124, with_median, "#0f766e"),
+    ):
+        median_x = plot_x(value, maximum)
+        lines.append(
+            f'  <path d="M {median_x:.2f} {row_y - 9} V {row_y + 9}" stroke="{color}" stroke-width="3"/>'
+        )
+    lines.append(
+        f'  <line x1="24" y1="{y + 151}" x2="576" y2="{y + 151}" stroke="#e2e8f0"/>'
+    )
+
+
+def render_accomplishment_panel(
+    lines: list[str],
+    y: int,
+    pairs: list[tuple[dict, dict]],
+) -> None:
+    total = len(pairs)
+    without_successes = sum(bool(pair[0]["accomplished"]) for pair in pairs)
+    with_successes = sum(bool(pair[1]["accomplished"]) for pair in pairs)
+    improved = sum(
+        not pair[0]["accomplished"] and bool(pair[1]["accomplished"])
+        for pair in pairs
+    )
+    regressed = sum(
+        bool(pair[0]["accomplished"]) and not pair[1]["accomplished"]
+        for pair in pairs
+    )
+    unchanged = total - improved - regressed
+    lines.extend(
+        [
+            f'  <text x="32" y="{y + 22}" fill="#0f172a" font-family="ui-sans-serif, system-ui, sans-serif" font-size="17" font-weight="700">Accomplishment rate</text>',
+            f'  <text x="560" y="{y + 22}" text-anchor="end" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">95% Wilson CI</text>',
+            f'  <line x1="170" y1="{y + 43}" x2="560" y2="{y + 43}" stroke="#94a3b8"/>',
+            f'  <text x="170" y="{y + 37}" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="11">0%</text>',
+            f'  <text x="560" y="{y + 37}" text-anchor="end" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="11">100%</text>',
+        ]
+    )
+    for arm_index, (label, successes, color) in enumerate(
+        (
+            ("Without skill", without_successes, "#475569"),
+            ("With skill", with_successes, "#0f766e"),
+        )
+    ):
+        row_y = y + 78 + arm_index * 46
+        low, high = wilson_interval(successes, total)
+        rate = successes / total
+        low_x, high_x, rate_x = (
+            plot_x(low, 1),
+            plot_x(high, 1),
+            plot_x(rate, 1),
+        )
+        lines.extend(
+            [
+                f'  <text x="32" y="{row_y + 4}" fill="{color}" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">{label}</text>',
+                f'  <line x1="{low_x:.2f}" y1="{row_y}" x2="{high_x:.2f}" y2="{row_y}" stroke="{color}" stroke-width="3"/>',
+                f'  <path d="M {low_x:.2f} {row_y - 6} V {row_y + 6} M {high_x:.2f} {row_y - 6} V {row_y + 6}" stroke="{color}" stroke-width="2"/>',
+                f'  <path d="M {rate_x:.2f} {row_y - 7} L {rate_x + 7:.2f} {row_y} L {rate_x:.2f} {row_y + 7} L {rate_x - 7:.2f} {row_y} Z" fill="{color}"/>',
+                f'  <text x="560" y="{row_y - 10}" text-anchor="end" fill="{color}" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12">{successes}/{total} · {percentage(rate)}</text>',
+            ]
+        )
+    lines.extend(
+        [
+            f'  <text x="32" y="{y + 153}" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">Improved {improved} · regressed {regressed} · unchanged {unchanged}</text>',
+            f'  <line x1="24" y1="{y + 168}" x2="576" y2="{y + 168}" stroke="#e2e8f0"/>',
+        ]
+    )
+
+
+def render_benchmark_chart(summary: dict, raw: dict) -> str:
+    targets = []
     seen = set()
     for row in summary["results"]:
         key = (row["harness"], row["model"])
@@ -1680,93 +1848,80 @@ def render_benchmark_chart(summary: dict) -> str:
             for candidate in summary["results"]
             if (candidate["harness"], candidate["model"]) == key
         }
-        pairs.append((key, target_rows["without_weft"], target_rows["with_weft"]))
+        target_pairs = target_raw_pairs(raw, *key)
+        if len(target_pairs) != target_rows["without_weft"]["valid_runs"]:
+            raise ValueError("raw evidence does not match summary valid runs")
+        targets.append((key, target_rows, target_pairs))
 
     width = 600
-    group_height = 468
-    height = 100 + group_height * len(pairs)
+    group_height = 560
+    height = 118 + group_height * len(targets)
     lines = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img" aria-labelledby="title desc">',
-        f'  <title id="title">Benchmark: {chart_text(summary["skill"])}</title>',
-        '  <desc id="desc">Without skill and with skill comparison for time, accomplishment rate, and tokens.</desc>',
-        '  <rect width="100%" height="100%" rx="18" fill="#f8fafc"/>',
-        f'  <text x="32" y="40" fill="#0f172a" font-family="ui-sans-serif, system-ui, sans-serif" font-size="24" font-weight="700">Benchmark: {chart_text(summary["skill"])}</text>',
-        '  <text x="32" y="64" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14">Without skill versus with skill</text>',
-        '  <text x="32" y="84" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">Lower time and tokens are better · higher accomplishment is better</text>',
+        f'  <title id="title">Benchmark evidence: {chart_text(summary["skill"])}</title>',
+        '  <desc id="desc">Raw paired observations for time and tokens, and accomplishment rates with Wilson intervals. Descriptive evidence only.</desc>',
+        '  <rect width="100%" height="100%" fill="#ffffff"/>',
+        f'  <text x="24" y="36" fill="#0f172a" font-family="ui-sans-serif, system-ui, sans-serif" font-size="22" font-weight="700">Benchmark evidence: {chart_text(summary["skill"])}</text>',
+        '  <text x="24" y="59" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">Descriptive paired observations · no causal or significance claim</text>',
+        '  <text x="24" y="82" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">Every dot and line is one valid paired run · vertical tick is the median</text>',
+        f'  <text x="24" y="102" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="11">Measured {chart_text(summary["generated_at"])} · {len(summary.get("case_ids", [])) or len({run["case_id"] for run in raw["runs"]})} committed case(s)</text>',
     ]
-    metrics = (
-        ("Time", "median_time_seconds", lambda value: f"{chart_number(value)} s"),
-        (
-            "Accomplishment rate",
-            "accomplishment_rate",
-            lambda value: percentage(value),
-        ),
-        ("Tokens", "median_tokens", chart_number),
-    )
-    for target_index, (key, without, with_skill) in enumerate(pairs):
-        group_y = 120 + target_index * group_height
+    for target_index, (key, rows, pairs) in enumerate(targets):
+        group_y = 130 + target_index * group_height
+        without = rows["without_weft"]
+        with_skill = rows["with_weft"]
+        version = target_version(summary, *key)
         label = f"{harness_title(key[0])} · {key[1]}"
-        lines.append(
-            f'  <text x="32" y="{group_y}" fill="#0f172a" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16" font-weight="650">{chart_text(label)}</text>'
+        lines.extend(
+            [
+                f'  <text x="24" y="{group_y}" fill="#0f172a" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16" font-weight="700">{chart_text(label)}</text>',
+                f'  <text x="576" y="{group_y}" text-anchor="end" fill="#475569" font-family="ui-monospace, SFMono-Regular, monospace" font-size="11">n={len(pairs)} valid pairs · {without["excluded_pairs"]} excluded</text>',
+                f'  <text x="24" y="{group_y + 19}" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="10">Harness {chart_text(version)}</text>',
+            ]
         )
-        for metric_index, (title, field, formatter) in enumerate(metrics):
-            x = 24
-            y = group_y + 16 + metric_index * 140
-            values = (without[field], with_skill[field])
-            scale = 1.0 if field == "accomplishment_rate" else max(values) or 1.0
-            lines.extend(
-                [
-                    f'  <rect x="{x}" y="{y}" width="552" height="128" rx="12" fill="#ffffff" stroke="#cbd5e1"/>',
-                    f'  <text x="{x + 16}" y="{y + 25}" fill="#334155" font-family="ui-sans-serif, system-ui, sans-serif" font-size="17" font-weight="700">{chart_text(title)}</text>',
-                ]
-            )
-            for arm_index, (arm_label, value, color) in enumerate(
-                (
-                    ("Without skill", values[0], "#64748b"),
-                    ("With skill", values[1], "#0f766e"),
-                )
-            ):
-                label_y = y + 50 + arm_index * 43
-                bar_y = label_y + 10
-                bar_width = max(0.0, min(520.0, 520.0 * float(value) / scale))
-                lines.extend(
-                    [
-                        f'  <text x="{x + 16}" y="{label_y}" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">{arm_label}</text>',
-                        f'  <text x="{x + 536}" y="{label_y}" text-anchor="end" fill="#0f172a" font-family="ui-monospace, SFMono-Regular, monospace" font-size="13" font-weight="700">{chart_text(formatter(value))}</text>',
-                        f'  <rect x="{x + 16}" y="{bar_y}" width="520" height="12" rx="6" fill="#e2e8f0"/>',
-                        f'  <rect x="{x + 16}" y="{bar_y}" width="{bar_width:.2f}" height="12" rx="6" fill="{color}"/>',
-                    ]
-                )
+        render_distribution_panel(
+            lines,
+            group_y + 30,
+            "Time",
+            "duration_seconds",
+            " s",
+            pairs,
+            without["median_time_seconds"],
+            with_skill["median_time_seconds"],
+        )
+        render_accomplishment_panel(lines, group_y + 190, pairs)
+        render_distribution_panel(
+            lines,
+            group_y + 368,
+            "Tokens",
+            "total_tokens",
+            "",
+            pairs,
+            without["median_tokens"],
+            with_skill["median_tokens"],
+        )
     lines.append("</svg>")
     return "\n".join(lines) + "\n"
 
 
 def render_unmeasured_chart() -> str:
-    lines = [
-        '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="504" viewBox="0 0 600 504" role="img" aria-labelledby="title desc">',
-        '  <title id="title">Benchmark not measured</title>',
-        '  <desc id="desc">No reproducible without skill and with skill comparison has been published.</desc>',
-        '  <rect width="100%" height="100%" rx="18" fill="#f8fafc"/>',
-        '  <text x="32" y="42" fill="#0f172a" font-family="ui-sans-serif, system-ui, sans-serif" font-size="24" font-weight="700">Benchmark not measured</text>',
-        '  <text x="32" y="68" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14">Run the committed benchmark to compare without skill and with skill.</text>',
-    ]
-    for index, title in enumerate(("Time", "Accomplishment rate", "Tokens")):
-        x = 24
-        y = 88 + index * 136
-        lines.extend(
-            [
-                f'  <rect x="{x}" y="{y}" width="552" height="120" rx="12" fill="#ffffff" stroke="#cbd5e1"/>',
-                f'  <text x="{x + 16}" y="{y + 25}" fill="#334155" font-family="ui-sans-serif, system-ui, sans-serif" font-size="17" font-weight="700">{title}</text>',
-                f'  <text x="{x + 16}" y="{y + 50}" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">Without skill</text>',
-                f'  <text x="{x + 536}" y="{y + 50}" text-anchor="end" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="14">—</text>',
-                f'  <line x1="{x + 16}" y1="{y + 60}" x2="{x + 536}" y2="{y + 60}" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" stroke-dasharray="2 18"/>',
-                f'  <text x="{x + 16}" y="{y + 93}" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">With skill</text>',
-                f'  <text x="{x + 536}" y="{y + 93}" text-anchor="end" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="14">—</text>',
-                f'  <line x1="{x + 16}" y1="{y + 103}" x2="{x + 536}" y2="{y + 103}" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" stroke-dasharray="2 18"/>',
-            ]
-        )
-    lines.append("</svg>")
-    return "\n".join(lines) + "\n"
+    return "\n".join(
+        [
+            '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="260" viewBox="0 0 600 260" role="img" aria-labelledby="title desc">',
+            '  <title id="title">Benchmark evidence is unmeasured</title>',
+            '  <desc id="desc">No observations, estimates, intervals, or comparisons are published.</desc>',
+            '  <rect width="100%" height="100%" fill="#ffffff"/>',
+            '  <text x="24" y="38" fill="#0f172a" font-family="ui-sans-serif, system-ui, sans-serif" font-size="22" font-weight="700">Benchmark evidence</text>',
+            '  <text x="24" y="72" fill="#9f1239" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16" font-weight="700">UNMEASURED</text>',
+            '  <text x="24" y="101" fill="#334155" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14">No observations are published.</text>',
+            '  <text x="24" y="128" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">Time: not estimated</text>',
+            '  <text x="24" y="151" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">Accomplishment rate: not estimated</text>',
+            '  <text x="24" y="174" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">Tokens: not estimated</text>',
+            '  <text x="24" y="211" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">Publication requires complete paired runs, raw evidence, exact harness</text>',
+            '  <text x="24" y="230" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">and model versions, reproducible grading, and visible exclusions.</text>',
+            "</svg>",
+        ]
+    ) + "\n"
 
 
 def render_benchmark_block(
@@ -1775,7 +1930,9 @@ def render_benchmark_block(
     lines = [
         "## Benchmark",
         "",
-        "The same clean-room tasks run without Weft and with Weft. Headline metrics are end-to-end time, full-task accomplishment rate, and total agent tokens.",
+        f"**Claim scope:** {summary['claim_scope']}",
+        "",
+        "The same clean-room tasks run without the skill and with the skill. Results are descriptive paired observations; they do not establish causality or statistical significance. Headline metrics are end-to-end time, full-task accomplishment rate, and total agent tokens.",
         "",
         f"![Benchmark chart]({chart_path})",
         "",
@@ -1788,7 +1945,7 @@ def render_benchmark_block(
         )
     for row in summary["deltas"]:
         lines.append(
-            f"| {harness_title(row['harness'])} / `{row['model']}` | Weft impact | {signed(row['time_seconds'], 's')} | {signed(row['accomplishment_percentage_points'], ' pp')} | {signed(row['tokens'])} | — |"
+            f"| {harness_title(row['harness'])} / `{row['model']}` | Observed difference | {signed(row['time_seconds'], 's')} | {signed(row['accomplishment_percentage_points'], ' pp')} | {signed(row['tokens'])} | — |"
         )
     lines.extend(
         [
@@ -1959,6 +2116,7 @@ def command_run(args: argparse.Namespace) -> int:
     raw = {
         "version": 1,
         "skill": manifest["skill"],
+        "claim_scope": manifest["claim_scope"],
         "generated_at": generated_at,
         "manifest_digest": manifest_hash,
         "skill_digest": skills_hash,
@@ -1985,6 +2143,7 @@ def command_run(args: argparse.Namespace) -> int:
         case_ids=[case["id"] for case in cases],
     )
     summary["generated_at"] = generated_at
+    summary["claim_scope"] = manifest["claim_scope"]
     summary["repetitions_run"] = repetitions
     summary["targets"] = target_versions
     summary["test_evidence"] = test_evidence
@@ -2056,7 +2215,7 @@ def command_publish(args: argparse.Namespace) -> int:
     )
     chart_path = readme_path.parent / BENCHMARK_CHART_PATH
     chart_path.parent.mkdir(parents=True, exist_ok=True)
-    chart_path.write_text(render_benchmark_chart(summary), encoding="utf-8")
+    chart_path.write_text(render_benchmark_chart(summary, raw), encoding="utf-8")
     readme_path.write_text(updated_readme, encoding="utf-8")
     print(readme_path)
     return 0

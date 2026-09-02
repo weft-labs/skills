@@ -46,6 +46,8 @@ silently overwritten or mixed with an older run.
 The JSON manifest contains:
 
 - version and skill name;
+- a plain-language claim scope that states what the benchmark does and does not
+  measure;
 - one or more skill directories loaded only in `with_weft`;
 - minimum repetitions;
 - paid-action policy, which must be false in V0;
@@ -75,7 +77,8 @@ path escapes, and paid-enabled manifests.
   their counts and reasons.
 - Aggregate median time, accomplishment rate, and median tokens by target and
   arm. Do not publish assertion percentage as accomplishment.
-- Generate a deterministic README block and SVG chart from a complete summary.
+- Generate a deterministic README block and SVG evidence plot from verified raw
+  paired runs and their complete summary.
 - Recompute the summary from its sibling raw evidence before publication and
   reject partial-case runs, changed aggregates, stale skill or manifest files,
   or evidence outside the skill.
@@ -96,12 +99,23 @@ path escapes, and paid-enabled manifests.
 
 Every `skills/*/README.md` has a marker-bounded `Benchmark` section and embeds
 `benchmarks/chart.svg`. Until a complete result is committed, the README and
-chart say `Status: Unmeasured`; the chart must not show invented values. A
-measured chart compares `without_weft` with `with_weft` for time,
-accomplishment rate, and tokens. A measured block names the harness, model,
-repetitions, the same three metrics, with-Weft delta, skill digest, manifest
-digest, date, and raw-result path. Publication writes both artifacts, and
-validation reproduces both from the committed evidence.
+plot say `Status: Unmeasured`; the plot is blank and must not use decorative
+marks that resemble observations. A measured plot compares `without_weft` with
+`with_weft` for time, accomplishment rate, and tokens. It shows:
+
+- every valid paired observation for time and tokens, with the same case and
+  repetition connected across arms;
+- median markers for time and tokens;
+- exact accomplishments over valid runs and 95% Wilson intervals for each arm;
+- paired accomplishment transitions, valid pair count, exclusions, exact
+  harness/model version, case count, and measurement time.
+
+The README states the manifest claim scope and calls each delta an observed
+difference, not an impact. It makes no causal, statistical-significance,
+forecast-accuracy, or financial-return claim. A measured block also names the
+repetitions, skill digest, manifest digest, date, and raw-result path.
+Publication writes both artifacts, and validation reproduces both from the
+committed raw evidence.
 
 ## Acceptance
 

@@ -1,6 +1,7 @@
 {
   "version": 1,
   "skill": "weft",
+  "claim_scope": "Instruction-following on one frozen paid-data workflow task. This does not measure live provider quality, data accuracy, or financial outcomes.",
   "skills": [
     "skills/weft"
   ],

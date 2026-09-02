@@ -1,6 +1,7 @@
 {
   "version": 1,
   "skill": "weft-gtm-lead-enrichment",
+  "claim_scope": "Instruction-following on one frozen asynchronous enrichment task. This does not measure live enrichment accuracy, delivery rate, or business outcomes.",
   "skills": [
     "skills/weft",
     "skills/weft-gtm-lead-enrichment"

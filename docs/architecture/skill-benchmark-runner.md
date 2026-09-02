@@ -9,7 +9,8 @@ It runs the same task twice with the same harness, model, safety policy, and fix
 2. `with_weft`: the selected Weft skill set is available.
 
 The public result has three dimensions only: end-to-end time, full-task
-accomplishment rate, and total agent tokens.
+accomplishment rate, and total agent tokens. Each manifest also states the
+boundary of the claim these dimensions can support.
 
 ## Boundary
 
@@ -110,22 +111,30 @@ target unmeasurable with a specific reason.
 The raw result records the prompt ID, arm, repetition, harness version and model
 identifier, skill-tree digest, manifest digest, duration, token count,
 accomplishment checks, final answer, and exclusion. The summary contains only
-aggregate facts derived from raw valid runs.
+aggregate facts derived from raw valid runs. Both artifacts copy the manifest's
+claim scope so it cannot disappear when the result is shared.
 
 `publish` replaces a marker-bounded section in the skill README and writes a
 deterministic SVG to `benchmarks/chart.svg`. The README embeds that stable path.
-The chart shows side-by-side `without_weft` and `with_weft` values for time,
-accomplishment rate, and tokens. It writes one table row per harness/model/arm
-plus the with-Weft delta and links the committed raw result. Before writing, it
+The plot reads the verified raw evidence. For time and tokens it shows every
+valid paired observation and connects the same case/repetition across arms;
+median markers summarize the distribution without hiding it. For
+accomplishment it shows exact successes over valid runs, 95% Wilson intervals,
+and the paired improved/regressed/unchanged counts. It also exposes the valid
+pair count, exclusions, harness version, model, case count, and timestamp. The
+README writes one table row per harness/model/arm plus the observed difference
+and links the committed raw result. It explicitly makes no causal or
+statistical-significance claim. Before writing, it
 reloads the current manifest and skill files, rereads
 each sibling `answer.md`, re-runs the committed checks, and recomputes the
 aggregates. It requires the minimum number of valid pairs for every target and
 every case. It refuses partial cases, changed aggregates, stale skill or
 manifest digests, evidence outside the skill, missing telemetry, duplicate
 runs, or incomplete case coverage. An unmeasured skill README states that no
-result has been published, and its chart shows an explicit unmeasured state. It
-does not show zeros. Repository validation reproduces measured charts from raw
-evidence and rejects missing or stale chart files.
+result has been published, and its plot is an explicit blank unmeasured state.
+It does not show zeros, bars, dots, or tracks that could look like observations.
+Repository validation reproduces measured plots from raw evidence and rejects
+missing or stale plot files.
 
 ## Safety
 

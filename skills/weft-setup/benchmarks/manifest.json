@@ -1,6 +1,7 @@
 {
   "version": 1,
   "skill": "weft-setup",
+  "claim_scope": "Instruction-following on one frozen account-setup task. This does not measure live authentication success, conversion, or retention.",
   "skills": [
     "skills/weft-setup"
   ],

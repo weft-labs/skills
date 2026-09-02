@@ -225,7 +225,7 @@ for path in skill_files:
                                     f"{readme.relative_to(root)}: measured benchmark block differs from evidence"
                                 )
                             if chart_path is not None:
-                                expected_chart = render_benchmark_chart(summary)
+                                expected_chart = render_benchmark_chart(summary, raw)
                                 try:
                                     actual_chart = chart_path.read_text(
                                         encoding="utf-8"

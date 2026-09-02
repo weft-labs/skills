@@ -1,6 +1,7 @@
 {
   "version": 1,
   "skill": "fixture-weft-skill",
+  "claim_scope": "Instruction-following on one frozen fixture task. This does not measure live external work.",
   "skills": ["tests/fixtures/benchmark/skill"],
   "minimum_repetitions": 1,
   "paid_actions": {
