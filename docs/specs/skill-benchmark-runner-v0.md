@@ -75,8 +75,9 @@ path escapes, and paid-enabled manifests.
 - Mark accomplishment true only when every committed check passes.
 - Exclude environment and harness failures from the denominator and publish
   their counts and reasons.
-- Aggregate median time, accomplishment rate, and median tokens by target and
-  arm. Do not publish assertion percentage as accomplishment.
+- Aggregate median harness process time, all-checks-passed rate, and median
+  tokens by target and arm. Do not publish assertion percentage as
+  accomplishment.
 - Generate a deterministic README block and SVG evidence plot from verified raw
   paired runs and their complete summary.
 - Recompute the summary from its sibling raw evidence before publication and
@@ -84,6 +85,11 @@ path escapes, and paid-enabled manifests.
   or evidence outside the skill.
 - Reread every final answer, re-run current manifest checks, and require the
   manifest repetition minimum for every target and every case.
+- Reparse token counts and final answers from the saved native harness stream,
+  and require each raw run to match its saved `result.json`.
+- Reject publication if any run has a harness, telemetry, or environment
+  exclusion. A failed committed check remains a measured task outcome. V0 does
+  not estimate an effect from survivor-only data.
 - Run Pi with no tools and identical explicit base prompts in both arms. Add
   immutable text skill instructions only for `with_weft`.
 - Give each Pi run a clean agent directory containing only copied
@@ -101,19 +107,25 @@ Every `skills/*/README.md` has a marker-bounded `Benchmark` section and embeds
 `benchmarks/chart.svg`. Until a complete result is committed, the README and
 plot say `Status: Unmeasured`; the plot is blank and must not use decorative
 marks that resemble observations. A measured plot compares `without_weft` with
-`with_weft` for time, accomplishment rate, and tokens. It shows:
+`with_weft` for harness process time, all committed checks passed, and tokens.
+It shows:
 
 - every valid paired observation for time and tokens, with the same case and
   repetition connected across arms;
 - median markers for time and tokens;
-- exact accomplishments over valid runs and 95% Wilson intervals for each arm;
-- paired accomplishment transitions, valid pair count, exclusions, exact
-  harness/model version, case count, and measurement time.
+- exact successes over complete runs without an inferential interval;
+- paired check-pass transitions, pair count, harness version, model identifier,
+  case IDs, case count, and measurement time;
+- the full claim scope inside the SVG so a copied chart keeps its boundary.
+
+Raw JSON also records a canonical disclosure of harness model defaults.
 
 The README states the manifest claim scope and calls each delta an observed
 difference, not an impact. It makes no causal, statistical-significance,
 forecast-accuracy, or financial-return claim. A measured block also names the
 repetitions, skill digest, manifest digest, date, and raw-result path.
+The evidence does not claim an exact hosted-model revision when the harness does
+not expose one.
 Publication writes both artifacts, and validation reproduces both from the
 committed raw evidence.
 

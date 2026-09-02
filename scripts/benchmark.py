@@ -19,6 +19,7 @@ import statistics
 import subprocess
 import sys
 import tempfile
+import textwrap
 import time
 import unicodedata
 from collections import Counter, defaultdict
@@ -774,6 +775,18 @@ def harness_version(target: Target) -> str | None:
     return value[-1] if value else None
 
 
+def model_configuration(target: Target) -> str:
+    if target.harness == "codex":
+        return (
+            "model identifier only; hosted model revision unavailable; harness-default "
+            "reasoning and sampling; user config ignored; tools and network disabled"
+        )
+    return (
+        "model identifier only; hosted model revision unavailable; provider-default "
+        "sampling; global settings ignored; tools disabled"
+    )
+
+
 def prepare_codex_skills(room: pathlib.Path, installed: list[pathlib.Path]) -> None:
     if not installed:
         return
@@ -1485,6 +1498,48 @@ def validate_run_telemetry(run: RunResult) -> None:
             )
 
 
+def verify_run_artifacts(
+    run: RunResult, evidence_root: pathlib.Path
+) -> pathlib.Path:
+    run_directory = evidence_root / relative_path(run.run_path, "run_path")
+    try:
+        run_directory.resolve().relative_to(evidence_root.resolve())
+    except ValueError as exc:
+        raise ValueError("raw evidence run path escapes the evidence directory") from exc
+
+    result_path = run_directory / "result.json"
+    try:
+        result_payload = json.loads(result_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"cannot read benchmark result.json evidence: {exc}") from exc
+    if result_payload != run.to_dict():
+        raise ValueError("raw run does not match its saved result.json")
+
+    native_name = "raw.jsonl" if run.harness == "codex" else "raw.json"
+    native_path = run_directory / native_name
+    try:
+        native_output = native_path.read_text(encoding="utf-8")
+        native_answer, native_tokens = (
+            parse_codex_output(native_output)
+            if run.harness == "codex"
+            else parse_pi_output(native_output)
+        )
+    except (OSError, MalformedHarnessOutputError) as exc:
+        raise ValueError(f"cannot parse native harness evidence: {exc}") from exc
+    if native_answer != run.answer:
+        raise ValueError("raw final answer does not match native harness evidence")
+    if native_tokens != run.total_tokens:
+        raise ValueError("raw token count does not match native token telemetry")
+    if run.harness == "codex" and parse_codex_failure(native_output) is not None:
+        raise ValueError("valid Codex run contains a native harness failure")
+    if run.harness == "pi":
+        if parse_pi_failure(native_output) is not None:
+            raise ValueError("valid Pi run contains a native harness failure")
+        if parse_pi_model_identity(native_output) != run.model:
+            raise ValueError("Pi model identifier does not match native evidence")
+    return run_directory
+
+
 def verify_publication(
     summary: dict,
     raw: dict,
@@ -1560,6 +1615,12 @@ def verify_publication(
         version = value.get("harness_version")
         if not isinstance(version, str) or not version.strip():
             raise ValueError("raw evidence requires a non-empty harness version")
+        configuration = value.get("model_configuration")
+        target = parse_target(f"{value['harness']}:{value['model']}")
+        if configuration != model_configuration(target):
+            raise ValueError(
+                "raw evidence model configuration differs from the runner contract"
+            )
     target_path_keys = {
         (target.harness, portable_path_key(slug(target.model))) for target in targets
     }
@@ -1569,6 +1630,10 @@ def verify_publication(
         runs = [RunResult(**value) for value in raw["runs"]]
     except (KeyError, TypeError) as exc:
         raise ValueError(f"raw evidence has invalid runs: {exc}") from exc
+    if any(run.exclusion is not None for run in runs):
+        raise ValueError(
+            "publication rejects evidence with failed or excluded runs to avoid survivor bias"
+        )
     cases_by_id = {case["id"]: case for case in manifest["cases"]}
     target_keys = {(target.harness, target.model) for target in targets}
     identities: set[tuple[str, str, str, str, int]] = set()
@@ -1600,19 +1665,10 @@ def verify_publication(
         ).as_posix()
         if run.run_path != expected_run_path:
             raise ValueError("raw evidence contains an unexpected run path")
-        if run.exclusion is not None:
-            continue
         if not isinstance(run.answer, str):
             raise ValueError("raw evidence is missing a final answer")
-        answer_path = (
-            evidence_root / relative_path(run.run_path, "run_path") / "answer.md"
-        )
-        try:
-            answer_path.resolve().relative_to(evidence_root.resolve())
-        except ValueError as exc:
-            raise ValueError(
-                "raw evidence answer path escapes the evidence directory"
-            ) from exc
+        run_directory = verify_run_artifacts(run, evidence_root)
+        answer_path = run_directory / "answer.md"
         try:
             answer = answer_path.read_text(encoding="utf-8")
         except OSError as exc:
@@ -1678,23 +1734,6 @@ def chart_number(value: float | int) -> str:
 
 def chart_text(value: object) -> str:
     return html.escape(str(value), quote=True)
-
-
-def wilson_interval(successes: int, total: int) -> tuple[float, float]:
-    if total < 1 or successes < 0 or successes > total:
-        raise ValueError("Wilson interval requires 0 <= successes <= total")
-    z = 1.959963984540054
-    proportion = successes / total
-    denominator = 1 + z * z / total
-    center = (proportion + z * z / (2 * total)) / denominator
-    half_width = (
-        z
-        * math.sqrt(
-            proportion * (1 - proportion) / total + z * z / (4 * total * total)
-        )
-        / denominator
-    )
-    return max(0.0, center - half_width), min(1.0, center + half_width)
 
 
 def target_raw_pairs(raw: dict, harness: str, model: str) -> list[tuple[dict, dict]]:
@@ -1797,8 +1836,8 @@ def render_accomplishment_panel(
     unchanged = total - improved - regressed
     lines.extend(
         [
-            f'  <text x="32" y="{y + 22}" fill="#0f172a" font-family="ui-sans-serif, system-ui, sans-serif" font-size="17" font-weight="700">Accomplishment rate</text>',
-            f'  <text x="560" y="{y + 22}" text-anchor="end" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">95% Wilson CI</text>',
+            f'  <text x="32" y="{y + 22}" fill="#0f172a" font-family="ui-sans-serif, system-ui, sans-serif" font-size="17" font-weight="700">All committed checks passed</text>',
+            f'  <text x="560" y="{y + 22}" text-anchor="end" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">Exact run counts · no inferential interval</text>',
             f'  <line x1="170" y1="{y + 43}" x2="560" y2="{y + 43}" stroke="#94a3b8"/>',
             f'  <text x="170" y="{y + 37}" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="11">0%</text>',
             f'  <text x="560" y="{y + 37}" text-anchor="end" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="11">100%</text>',
@@ -1811,18 +1850,11 @@ def render_accomplishment_panel(
         )
     ):
         row_y = y + 78 + arm_index * 46
-        low, high = wilson_interval(successes, total)
         rate = successes / total
-        low_x, high_x, rate_x = (
-            plot_x(low, 1),
-            plot_x(high, 1),
-            plot_x(rate, 1),
-        )
+        rate_x = plot_x(rate, 1)
         lines.extend(
             [
                 f'  <text x="32" y="{row_y + 4}" fill="{color}" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">{label}</text>',
-                f'  <line x1="{low_x:.2f}" y1="{row_y}" x2="{high_x:.2f}" y2="{row_y}" stroke="{color}" stroke-width="3"/>',
-                f'  <path d="M {low_x:.2f} {row_y - 6} V {row_y + 6} M {high_x:.2f} {row_y - 6} V {row_y + 6}" stroke="{color}" stroke-width="2"/>',
                 f'  <path d="M {rate_x:.2f} {row_y - 7} L {rate_x + 7:.2f} {row_y} L {rate_x:.2f} {row_y + 7} L {rate_x - 7:.2f} {row_y} Z" fill="{color}"/>',
                 f'  <text x="560" y="{row_y - 10}" text-anchor="end" fill="{color}" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12">{successes}/{total} · {percentage(rate)}</text>',
             ]
@@ -1853,21 +1885,40 @@ def render_benchmark_chart(summary: dict, raw: dict) -> str:
             raise ValueError("raw evidence does not match summary valid runs")
         targets.append((key, target_rows, target_pairs))
 
+    scope_lines = textwrap.wrap(summary["claim_scope"], width=82) or [""]
+    case_ids = summary.get("case_ids", []) or sorted(
+        {run["case_id"] for run in raw["runs"]}
+    )
+    case_text = ", ".join(case_ids)
     width = 600
     group_height = 560
-    height = 118 + group_height * len(targets)
+    scope_start_y = 100
+    case_y = scope_start_y + 17 * len(scope_lines) + 8
+    measured_y = case_y + 20
+    group_start_y = measured_y + 30
+    height = group_start_y + group_height * len(targets) - 12
     lines = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img" aria-labelledby="title desc">',
         f'  <title id="title">Benchmark evidence: {chart_text(summary["skill"])}</title>',
-        '  <desc id="desc">Raw paired observations for time and tokens, and accomplishment rates with Wilson intervals. Descriptive evidence only.</desc>',
+        f'  <desc id="desc">{chart_text(summary["claim_scope"])} Raw paired observations for harness process time and tokens, and exact all-checks-passed counts. Descriptive evidence only.</desc>',
         '  <rect width="100%" height="100%" fill="#ffffff"/>',
         f'  <text x="24" y="36" fill="#0f172a" font-family="ui-sans-serif, system-ui, sans-serif" font-size="22" font-weight="700">Benchmark evidence: {chart_text(summary["skill"])}</text>',
         '  <text x="24" y="59" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">Descriptive paired observations · no causal or significance claim</text>',
-        '  <text x="24" y="82" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">Every dot and line is one valid paired run · vertical tick is the median</text>',
-        f'  <text x="24" y="102" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="11">Measured {chart_text(summary["generated_at"])} · {len(summary.get("case_ids", [])) or len({run["case_id"] for run in raw["runs"]})} committed case(s)</text>',
+        '  <text x="24" y="82" fill="#334155" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12" font-weight="700">Claim scope</text>',
     ]
+    for index, scope_line in enumerate(scope_lines):
+        lines.append(
+            f'  <text x="24" y="{scope_start_y + index * 17}" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">{chart_text(scope_line)}</text>'
+        )
+    lines.extend(
+        [
+            f'  <text x="24" y="{case_y}" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="10">Case IDs: {chart_text(case_text)}</text>',
+            f'  <text x="24" y="{measured_y}" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="10">Measured {chart_text(summary["generated_at"])} · {len(case_ids)} committed case(s)</text>',
+            f'  <text x="24" y="{measured_y + 20}" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">Every dot and line is one complete paired run · vertical tick is the median</text>',
+        ]
+    )
     for target_index, (key, rows, pairs) in enumerate(targets):
-        group_y = 130 + target_index * group_height
+        group_y = group_start_y + 20 + target_index * group_height
         without = rows["without_weft"]
         with_skill = rows["with_weft"]
         version = target_version(summary, *key)
@@ -1875,14 +1926,14 @@ def render_benchmark_chart(summary: dict, raw: dict) -> str:
         lines.extend(
             [
                 f'  <text x="24" y="{group_y}" fill="#0f172a" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16" font-weight="700">{chart_text(label)}</text>',
-                f'  <text x="576" y="{group_y}" text-anchor="end" fill="#475569" font-family="ui-monospace, SFMono-Regular, monospace" font-size="11">n={len(pairs)} valid pairs · {without["excluded_pairs"]} excluded</text>',
-                f'  <text x="24" y="{group_y + 19}" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="10">Harness {chart_text(version)}</text>',
+                f'  <text x="576" y="{group_y}" text-anchor="end" fill="#475569" font-family="ui-monospace, SFMono-Regular, monospace" font-size="11">n={len(pairs)} complete pairs · {without["excluded_pairs"]} excluded</text>',
+                f'  <text x="24" y="{group_y + 19}" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="10">Harness version {chart_text(version)} · model identifier {chart_text(key[1])}</text>',
             ]
         )
         render_distribution_panel(
             lines,
             group_y + 30,
-            "Time",
+            "Harness process time",
             "duration_seconds",
             " s",
             pairs,
@@ -1914,11 +1965,11 @@ def render_unmeasured_chart() -> str:
             '  <text x="24" y="38" fill="#0f172a" font-family="ui-sans-serif, system-ui, sans-serif" font-size="22" font-weight="700">Benchmark evidence</text>',
             '  <text x="24" y="72" fill="#9f1239" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16" font-weight="700">UNMEASURED</text>',
             '  <text x="24" y="101" fill="#334155" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14">No observations are published.</text>',
-            '  <text x="24" y="128" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">Time: not estimated</text>',
-            '  <text x="24" y="151" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">Accomplishment rate: not estimated</text>',
+            '  <text x="24" y="128" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">Harness process time: not measured</text>',
+            '  <text x="24" y="151" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">All committed checks passed: not measured</text>',
             '  <text x="24" y="174" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">Tokens: not estimated</text>',
-            '  <text x="24" y="211" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">Publication requires complete paired runs, raw evidence, exact harness</text>',
-            '  <text x="24" y="230" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">and model versions, reproducible grading, and visible exclusions.</text>',
+            '  <text x="24" y="211" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">Publication requires complete paired runs, raw evidence, a harness version</text>',
+            '  <text x="24" y="230" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">and model identifier, reproducible grading, and zero excluded runs.</text>',
             "</svg>",
         ]
     ) + "\n"
@@ -1932,11 +1983,11 @@ def render_benchmark_block(
         "",
         f"**Claim scope:** {summary['claim_scope']}",
         "",
-        "The same clean-room tasks run without the skill and with the skill. Results are descriptive paired observations; they do not establish causality or statistical significance. Headline metrics are end-to-end time, full-task accomplishment rate, and total agent tokens.",
+        "The same clean-room tasks run without the skill and with the skill. Results are descriptive paired observations; they do not establish causality or statistical significance. Headline metrics are maintainer-recorded harness process time, all committed checks passed, and total agent tokens.",
         "",
         f"![Benchmark chart]({chart_path})",
         "",
-        "| Harness / model | Arm | Time, median | Accomplishment rate | Tokens, median | Valid / excluded pairs |",
+        "| Harness / model | Arm | Harness process time, median | All committed checks passed | Tokens, median | Complete / excluded pairs |",
         "|---|---|---:|---:|---:|---:|",
     ]
     for row in summary["results"]:
@@ -1950,7 +2001,7 @@ def render_benchmark_block(
     lines.extend(
         [
             "",
-            f"Actual repetitions per case: {summary['repetitions_run']}. Required valid pairs per target and case: {summary['minimum_repetitions']}. Excluded matched pairs: {summary.get('exclusions', {}).get('pairs', 0)}.",
+            f"Actual repetitions per case: {summary['repetitions_run']}. Required complete pairs per target and case: {summary['minimum_repetitions']}. Excluded matched pairs: {summary.get('exclusions', {}).get('pairs', 0)}.",
             f"Measured: {summary['generated_at']}. Skill digest: `{summary['skill_digest']}`. Manifest digest: `{summary['manifest_digest']}`.",
             f"[Raw benchmark evidence]({raw_path})",
         ]
@@ -2075,7 +2126,11 @@ def command_run(args: argparse.Namespace) -> int:
     out_root.mkdir(parents=True, exist_ok=True)
     runs = []
     target_versions = [
-        {**dataclasses.asdict(target), "harness_version": harness_version(target)}
+        {
+            **dataclasses.asdict(target),
+            "harness_version": harness_version(target),
+            "model_configuration": model_configuration(target),
+        }
         for target in targets
     ]
     test_evidence = os.environ.get("WEFT_BENCHMARK_TEST_MODE") == "1"

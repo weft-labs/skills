@@ -1354,6 +1354,9 @@ class BenchmarkContractTest(unittest.TestCase):
                     "harness": "codex",
                     "model": "gpt",
                     "harness_version": "codex 1.0",
+                    "model_configuration": self.benchmark.model_configuration(
+                        self.benchmark.Target("codex", "gpt")
+                    ),
                 }
             ],
             "results": [
@@ -1421,31 +1424,30 @@ class BenchmarkContractTest(unittest.TestCase):
         ET.fromstring(chart)
         self.assertIn("Benchmark evidence: fixture", chart)
         self.assertIn("Codex · gpt", chart)
-        self.assertIn("Harness codex 1.0", chart)
-        self.assertIn("Time", chart)
-        self.assertIn("Accomplishment rate", chart)
+        self.assertIn("Harness version codex 1.0 · model identifier gpt", chart)
+        self.assertIn("Harness process time", chart)
+        self.assertIn("All committed checks passed", chart)
         self.assertIn("Tokens", chart)
         self.assertIn("Without skill", chart)
         self.assertIn("With skill", chart)
-        self.assertIn("Every dot and line is one valid paired run", chart)
-        self.assertIn("95% Wilson CI", chart)
-        self.assertIn("n=3 valid pairs", chart)
+        self.assertIn("Every dot and line is one complete paired run", chart)
+        self.assertNotIn("Wilson", chart)
+        self.assertIn("n=3 complete pairs", chart)
         self.assertIn("1/3", chart)
         self.assertIn("3/3", chart)
         self.assertIn("Improved 2 · regressed 0 · unchanged 1", chart)
         self.assertEqual(6, chart.count('data-pair="'))
-        low, high = self.benchmark.wilson_interval(1, 3)
-        self.assertAlmostEqual(0.0615, low, places=4)
-        self.assertAlmostEqual(0.7923, high, places=4)
+        self.assertIn(summary["claim_scope"], chart)
+        self.assertIn("Case IDs: case", chart)
         self.assertIn("![Benchmark chart](benchmarks/chart.svg)", block)
         self.assertIn("Claim scope:", block)
         self.assertIn("Observed difference", block)
         self.assertNotIn("Weft impact", block)
         self.assertIn("descriptive", block)
-        self.assertIn("Time", block)
-        self.assertIn("Accomplishment rate", block)
+        self.assertIn("Harness process time", block)
+        self.assertIn("All committed checks passed", block)
         self.assertIn("Tokens", block)
-        self.assertIn("Valid / excluded pairs", block)
+        self.assertIn("Complete / excluded pairs", block)
         self.assertIn("| 3 / 0 |", block)
         self.assertIn("Actual repetitions per case: 5.", block)
         self.assertNotIn("assertion", block.lower())
@@ -1460,8 +1462,8 @@ class BenchmarkContractTest(unittest.TestCase):
         chart = self.benchmark.render_unmeasured_chart()
         ET.fromstring(chart)
         self.assertIn("Benchmark evidence is unmeasured", chart)
-        self.assertIn("Time", chart)
-        self.assertIn("Accomplishment rate", chart)
+        self.assertIn("Harness process time", chart)
+        self.assertIn("All committed checks passed", chart)
         self.assertIn("Tokens", chart)
         self.assertNotIn(">0%</text>", chart)
         self.assertNotIn("<circle", chart)
@@ -1529,6 +1531,16 @@ class BenchmarkContractTest(unittest.TestCase):
                         run_path=run_path.as_posix(),
                     )
                     run.checks = [{"id": "verified", "passed": True}]
+                    native_events = [
+                        {"item": {"type": "agent_message", "text": run.answer}},
+                        {"usage": {"total_tokens": tokens}},
+                    ]
+                    (answer_path.parent / "raw.jsonl").write_text(
+                        "\n".join(json.dumps(event) for event in native_events) + "\n"
+                    )
+                    (answer_path.parent / "result.json").write_text(
+                        json.dumps(run.to_dict(), indent=2) + "\n"
+                    )
                     runs.append(run)
             targets = [self.benchmark.Target("codex", "gpt")]
             summary = self.benchmark.aggregate(
@@ -1544,7 +1556,14 @@ class BenchmarkContractTest(unittest.TestCase):
             summary["manifest_case_ids"] = ["case"]
             summary["claim_scope"] = manifest["claim_scope"]
             summary["targets"] = [
-                {"harness": "codex", "model": "gpt", "harness_version": "fixture"}
+                {
+                    "harness": "codex",
+                    "model": "gpt",
+                    "harness_version": "fixture",
+                    "model_configuration": self.benchmark.model_configuration(
+                        self.benchmark.Target("codex", "gpt")
+                    ),
+                }
             ]
             summary["test_evidence"] = False
             summary["repetitions_run"] = 3
@@ -1563,6 +1582,32 @@ class BenchmarkContractTest(unittest.TestCase):
                 "runs": [run.to_dict() for run in runs],
             }
             self.benchmark.verify_publication(summary, raw, manifest, repo, evidence)
+
+            raw["runs"][0]["exclusion"] = "timeout"
+            with self.assertRaisesRegex(ValueError, "survivor bias"):
+                self.benchmark.verify_publication(
+                    summary, raw, manifest, repo, evidence
+                )
+            raw["runs"][0]["exclusion"] = None
+
+            first_run_dir = evidence / raw["runs"][0]["run_path"]
+            native_path = first_run_dir / "raw.jsonl"
+            native_value = native_path.read_text()
+            native_path.write_text(native_value.replace('"total_tokens": 100', '"total_tokens": 99'))
+            with self.assertRaisesRegex(ValueError, "native token telemetry"):
+                self.benchmark.verify_publication(
+                    summary, raw, manifest, repo, evidence
+                )
+            native_path.write_text(native_value)
+
+            result_path = first_run_dir / "result.json"
+            result_value = result_path.read_text()
+            result_path.write_text(result_value.replace('"duration_seconds": 10.0', '"duration_seconds": 9.0'))
+            with self.assertRaisesRegex(ValueError, "result.json"):
+                self.benchmark.verify_publication(
+                    summary, raw, manifest, repo, evidence
+                )
+            result_path.write_text(result_value)
 
             manifest_path = skill / "benchmarks" / "manifest.json"
             manifest_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1607,6 +1652,16 @@ class BenchmarkContractTest(unittest.TestCase):
                 )
             raw["targets"][0]["harness_version"] = version
             summary["targets"][0]["harness_version"] = version
+
+            configuration = raw["targets"][0]["model_configuration"]
+            raw["targets"][0]["model_configuration"] = None
+            summary["targets"][0]["model_configuration"] = None
+            with self.assertRaisesRegex(ValueError, "model configuration"):
+                self.benchmark.verify_publication(
+                    summary, raw, manifest, repo, evidence
+                )
+            raw["targets"][0]["model_configuration"] = configuration
+            summary["targets"][0]["model_configuration"] = configuration
 
             removed_run = raw["runs"].pop()
             with self.assertRaisesRegex(ValueError, "exact repetition matrix"):

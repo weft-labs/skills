@@ -8,9 +8,9 @@ It runs the same task twice with the same harness, model, safety policy, and fix
 1. `without_weft`: no Weft skill is available;
 2. `with_weft`: the selected Weft skill set is available.
 
-The public result has three dimensions only: end-to-end time, full-task
-accomplishment rate, and total agent tokens. Each manifest also states the
-boundary of the claim these dimensions can support.
+The public result has three dimensions only: harness process time, all committed
+checks passed, and total agent tokens. Each manifest also states the boundary of
+the claim these dimensions can support.
 
 ## Boundary
 
@@ -76,14 +76,15 @@ fixture path and content in a delimited JSON task-input bundle.
 
 | Dimension | Definition |
 |---|---|
-| Time | Wall-clock seconds from child-process start to exit. Public summaries use the median of valid runs. |
-| Accomplishment rate | Fully accomplished valid runs divided by all valid runs. A run is accomplished only when every committed check passes. |
+| Harness process time | Maintainer-recorded monotonic wall-clock seconds from child-process start to exit. Clean-room preparation is outside this boundary. Public summaries use the median of complete runs. |
+| All committed checks passed | Complete runs where every precommitted check passes, divided by all complete runs. |
 | Tokens | Total native tokens reported by the harness for the task agent, including its subagents when the harness reports them. Pi uses `totalTokens`, which includes input, output, cache-read, and cache-write categories exactly once. Public summaries use the median. |
 
 Missing token telemetry makes a run `unmeasurable`; it is never recorded as
 zero. Authentication failures, unavailable models, timeouts, malformed harness
-output, and tool-connection failures are exclusions. The summary publishes each
-exclusion count and reason. Grader time and tokens are not agent-task telemetry.
+output, and tool-connection failures are exclusions. The run summary records
+each exclusion count and reason, but V0 refuses to publish a comparison when any
+run is excluded. Grader time and tokens are not agent-task telemetry.
 
 ## Accomplishment and truth
 
@@ -117,11 +118,15 @@ claim scope so it cannot disappear when the result is shared.
 `publish` replaces a marker-bounded section in the skill README and writes a
 deterministic SVG to `benchmarks/chart.svg`. The README embeds that stable path.
 The plot reads the verified raw evidence. For time and tokens it shows every
-valid paired observation and connects the same case/repetition across arms;
-median markers summarize the distribution without hiding it. For
-accomplishment it shows exact successes over valid runs, 95% Wilson intervals,
-and the paired improved/regressed/unchanged counts. It also exposes the valid
-pair count, exclusions, harness version, model, case count, and timestamp. The
+paired observation and connects the same case/repetition across arms; median
+markers summarize the distribution without hiding it. For accomplishment it
+shows exact all-checks-passed counts and paired
+improved/regressed/unchanged counts. It does not show inferential intervals:
+repeated runs of a fixed case do not define an independent sampled population.
+It also exposes the pair count, harness version, model identifier, case IDs,
+timestamp, and full claim scope. Raw JSON discloses the effective defaults that
+the harness exposes and says when the hosted model revision is unavailable.
+The
 README writes one table row per harness/model/arm plus the observed difference
 and links the committed raw result. It explicitly makes no causal or
 statistical-significance claim. Before writing, it
@@ -130,7 +135,12 @@ each sibling `answer.md`, re-runs the committed checks, and recomputes the
 aggregates. It requires the minimum number of valid pairs for every target and
 every case. It refuses partial cases, changed aggregates, stale skill or
 manifest digests, evidence outside the skill, missing telemetry, duplicate
-runs, or incomplete case coverage. An unmeasured skill README states that no
+runs, incomplete case coverage, or any harness, telemetry, or environment
+exclusion. A failed committed check remains a measured task outcome. Publication
+reparses native harness output for answers and token counts and requires each
+run to match its saved `result.json`. Harness process time is a maintainer-recorded
+monotonic wall-clock measurement and is not re-derived from the native stream.
+An unmeasured skill README states that no
 result has been published, and its plot is an explicit blank unmeasured state.
 It does not show zeros, bars, dots, or tracks that could look like observations.
 Repository validation reproduces measured plots from raw evidence and rejects

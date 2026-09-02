@@ -57,14 +57,17 @@ Or point an agent at the hosted copies:
 
 The benchmark runner compares the same task and model in two clean rooms:
 without Weft and with the selected Weft skill. It reports only three headline
-dimensions: end-to-end time, full-task accomplishment rate, and total agent
+dimensions: harness process time, all committed checks passed, and total agent
 tokens. Authentication, unavailable models, timeouts, and missing token
 telemetry are excluded and reported. They do not count as task failures.
 Each skill README embeds an evidence plot at `benchmarks/chart.svg`. A measured
-plot shows every valid paired time and token observation, medians, exact
-accomplishments with 95% Wilson intervals, paired outcome changes, sample size,
-exclusions, and the exact harness version. Before a complete benchmark is
-published, that plot is blank and shows an explicit unmeasured state.
+plot shows every paired time and token observation, medians, exact check-pass
+counts, paired outcome changes, sample size, and the harness version with its
+model identifier. Raw evidence also records the available model configuration.
+Hosted model revisions are not available and are not claimed. A result with any
+harness, telemetry, or environment exclusion cannot be published.
+Before a complete benchmark is published, that plot is blank and shows an
+explicit unmeasured state.
 
 Run one manifest on any supported harness and model:
 

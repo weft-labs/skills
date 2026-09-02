@@ -174,8 +174,8 @@ for path in skill_files:
             measured = all(
                 term in block
                 for term in (
-                    "Time",
-                    "Accomplishment rate",
+                    "Harness process time",
+                    "All committed checks passed",
                     "Tokens",
                     "Raw benchmark evidence",
                 )
