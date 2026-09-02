@@ -12,6 +12,10 @@ npx skills add weft-labs/skills --skill polymarket-research
 
 ## Reproduce the benchmark
 
+This is a narrow instruction-following benchmark on one frozen research-planning
+task. It does not measure live research quality, forecast accuracy, trading
+performance, or financial returns.
+
 From the repository root:
 
 ```sh

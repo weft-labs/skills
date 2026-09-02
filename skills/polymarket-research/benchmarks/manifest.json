@@ -1,6 +1,7 @@
 {
   "version": 1,
   "skill": "polymarket-research",
+  "claim_scope": "Instruction-following on one frozen Polymarket research-planning task. This does not measure live research quality, forecast accuracy, trading performance, or financial returns.",
   "skills": [
     "skills/weft",
     "skills/polymarket-research"
