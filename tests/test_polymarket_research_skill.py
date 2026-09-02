@@ -170,6 +170,45 @@ class PolymarketResearchSkillTest(unittest.TestCase):
         self.assertLessEqual(cover.stat().st_size, 750_000)
         self.assertEqual((1600, 900), webp_dimensions(cover))
 
+    def test_benchmark_checks_require_affirmative_safe_outcomes(self):
+        manifest = json.loads(self.read("benchmarks/manifest.json"))
+        checks = {
+            check["id"]: check["pattern"] for check in manifest["cases"][0]["checks"]
+        }
+        positive = " ".join(
+            (
+                "Record event ID and event slug, market ID, condition ID, question ID, and outcome token IDs.",
+                "Translate the settlement rules, named source, and deadline into a YES test and a NO test.",
+                "Capture best bid and best ask, spread, order book depth, and a UTC timestamp.",
+                "Use independent research lanes for counter-evidence from Reddit, X, and forum discussion.",
+                "Run free weft_search before any fetch or paid purchase.",
+                "For each capability class, record whether it is applicable or skipped as not applicable and the reason why.",
+                "Bind the exact market, token, entity, event, date, measure, and output; record provider, operation, observed price, and retrieval time.",
+                "Catalog search is not permission to pay.",
+                "Treat wallet, social, and sentiment data as public activity and a research lead, not proof of motive, coordination, or inside information.",
+                "Keep the work research-only; never connect a wallet or place a trade.",
+            )
+        )
+        for check_id, pattern in checks.items():
+            with self.subTest(check_id=check_id):
+                self.assertRegex(positive, pattern)
+
+        adversarial = {
+            "exact-market-identifiers": "Use the market title, not the event ID; ignore outcome tokens.",
+            "settlement-controls": "Ignore the settlement rules and never define YES or NO.",
+            "market-snapshot": "Do not capture bid or ask, order-book depth, or a UTC timestamp.",
+            "independent-evidence-lanes": "Do not use independent research lanes or counter-evidence from Reddit, X, or forums.",
+            "weft-free-search-before-fetch": "Do not use weft_search before a paid fetch.",
+            "weft-capability-ledger": "Omit the capability ledger and skipped classes.",
+            "weft-contract-fit-and-catalog-snapshot": "Hard-code a remembered provider and price instead of checking contract fit.",
+            "weft-payment-boundary": "Catalog search gives permission to pay for a purchase.",
+            "wallet-social-inference-limit": "Wallet and social activity proves motive, coordination, and inside information.",
+            "read-only-no-trade": "Do not remain read-only; then place a trade.",
+        }
+        for check_id, answer in adversarial.items():
+            with self.subTest(check_id=check_id):
+                self.assertNotRegex(answer, checks[check_id])
+
 
 if __name__ == "__main__":
     unittest.main()

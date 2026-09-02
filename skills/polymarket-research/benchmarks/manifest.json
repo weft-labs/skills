@@ -1,0 +1,61 @@
+{
+  "version": 1,
+  "skill": "polymarket-research",
+  "skills": [
+    "skills/weft",
+    "skills/polymarket-research"
+  ],
+  "minimum_repetitions": 3,
+  "paid_actions": {
+    "enabled": false
+  },
+  "cases": [
+    {
+      "id": "settlement-first-research-plan",
+      "prompt": "An analyst receives one live Polymarket URL and must produce a thorough decision brief before deciding whether more data is needed. Write the operating procedure the analyst should follow. Keep the work research-only; do not browse or call an API for this answer.",
+      "truth_provenance": "Maintainer-authored acceptance contract from Polymarket's public market-data surfaces, settlement workflow, and the committed read-only skill contract; written before benchmark execution.",
+      "checks": [
+        {
+          "id": "exact-market-identifiers",
+          "pattern": "(?is)^(?!.*(?:use|trust|rely on).{0,80}(?:title|headline).{0,80}(?:instead|rather|not the event ID|ignore)).*(?:event ID|event slug).{0,220}(?:market ID|condition ID|question ID).{0,220}(?:token|asset|outcome)"
+        },
+        {
+          "id": "settlement-controls",
+          "pattern": "(?is)^(?!.*(?:ignore|skip|omit|do not|never).{0,100}(?:settlement|resolution|\\bYES\\b|\\bNO\\b)).*(?:settlement|resolution).{0,180}(?:rules|source|deadline).{0,220}\\bYES\\b.{0,140}\\bNO\\b"
+        },
+        {
+          "id": "market-snapshot",
+          "pattern": "(?is)^(?!.*(?:ignore|skip|omit|do not|never|without).{0,100}(?:bid|ask|depth|order book|timestamp)).*(?:bid).{0,100}(?:ask).{0,180}(?:spread|depth|order book).{0,220}(?:timestamp|UTC|stale)"
+        },
+        {
+          "id": "independent-evidence-lanes",
+          "pattern": "(?is)^(?!.*(?:ignore|skip|omit|do not|never|without).{0,120}(?:independent|counter-evidence|disconfirm)).*(?:independent|parallel).{0,120}(?:lane|research).{0,300}(?:counter|contrary|disconfirm).{0,240}(?:Reddit|X|forum|discussion)"
+        },
+        {
+          "id": "weft-free-search-before-fetch",
+          "pattern": "(?is)^(?!.*(?:do not|never|skip|avoid).{0,80}(?:weft_search|Weft)).*(?:free).{0,80}weft_search.{0,220}(?:before|prior to).{0,100}(?:fetch|paid|purchase)"
+        },
+        {
+          "id": "weft-capability-ledger",
+          "pattern": "(?is)^(?!.*(?:omit|skip|do not).{0,100}(?:capabilit|class|ledger)).*(?:capabilit|class).{0,180}(?:applicable|applies).{0,220}(?:skip|not applicable).{0,180}(?:reason|why)"
+        },
+        {
+          "id": "weft-contract-fit-and-catalog-snapshot",
+          "pattern": "(?is)^(?!.*(?:hard-code|remembered).{0,100}(?:provider|price)).*(?:exact|bind).{0,160}(?:market|token|entity|event|date|measure|output).{0,260}(?:provider).{0,120}(?:operation).{0,160}(?:price|cost).{0,120}(?:retrieval|observed|timestamp|UTC)"
+        },
+        {
+          "id": "weft-payment-boundary",
+          "pattern": "(?is)^(?!.*(?:search|discovery).{0,80}(?:means|gives|is)\\s+(?!not\\b)(?:permission|approval).{0,80}(?:pay|purchase)).*(?:search|discovery).{0,100}(?:not|isn't|is not|does not).{0,100}(?:permission|approval).{0,100}(?:pay|purchase|paid)"
+        },
+        {
+          "id": "wallet-social-inference-limit",
+          "pattern": "(?is)^(?!.*(?:wallet|holder|social|sentiment).{0,120}(?:proves?|demonstrates?|confirms?).{0,100}(?:motive|coordination|inside)).*(?:wallet|holder|social|sentiment).{0,180}(?:lead|public activity|signal).{0,180}(?:not|never).{0,120}(?:motive|coordination|inside information)"
+        },
+        {
+          "id": "read-only-no-trade",
+          "pattern": "(?is)^(?!.*(?:do not|never).{0,40}remain read-only)(?!.*(?:should|must|then|will)\\s+(?:place|execute|submit).{0,40}(?:trade|order)).*(?:read-only|research-only).{0,180}(?:do not|never|no).{0,100}(?:connect.{0,30}wallet|place.{0,30}(?:trade|order)|execution)"
+        }
+      ]
+    }
+  ]
+}
