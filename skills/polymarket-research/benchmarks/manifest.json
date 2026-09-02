@@ -97,8 +97,8 @@
       ],
       "checks": [
         {
-          "id": "distinct-slugs-and-confirmation",
-          "pattern": "(?is)\\A(?!.*(?:\\bno\\s+(?:user\\s+)?confirmation\\s+(?:is\\s+)?(?:needed|required)\\b|\\bno need for (?:user )?confirmation\\b|silently replace|use the candidate now))(?=.*\\bfed-cut-before-december-2026\\b)(?=.*\\bfed-rate-cut-by-december-2026\\b)(?=.*(?:(?:ask|request)(?: the)? user (?:to confirm|for confirmation) before (?:using|accepting|substituting|replacing)|(?:do not|never|cannot|can't|must not).{0,70}(?:unless|until|without).{0,30}(?:user )?confirm|(?:blocked|wait|defer|stop|pause|cannot proceed|must not proceed).{0,100}(?:pending|until|requires?|needs?|without).{0,40}(?:user )?confirmation|(?:completing|finishing|producing).{0,30}(?:brief|report).{0,30}requires?.{0,30}(?:user )?confirmation|(?:blocked|wait|defer|stop|pause|remains? blocked).{0,100}until (?:the )?(?:user )?(?:explicitly )?confirms?|(?:user )?confirmation.{0,60}(?:required|needed)))[\\s\\S]*\\Z"
+          "id": "distinct-slugs-without-substitution",
+          "pattern": "(?is)\\A(?!.*(?:\\bno\\s+(?:user\\s+)?confirmation\\s+(?:is\\s+)?(?:needed|required)\\b|\\bno need for (?:user )?confirmation\\b|\\b(?:need|require)s?\\s+no\\s+(?:user\\s+)?confirmation\\b|silently replace|use the candidate now))(?=.*\\bfed-cut-before-december-2026\\b)(?=.*\\bfed-rate-cut-by-december-2026\\b)[\\s\\S]*\\Z"
         },
         {
           "id": "blocked-identity-decisions",

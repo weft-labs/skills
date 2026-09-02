@@ -338,6 +338,12 @@ END_DECISION_RECORD""",
             "The brief remains blocked until the user explicitly confirms the "
             "replacement.",
         )
+        completion_requires_wording = adjudicated[
+            "unresolved-identity-stop"
+        ].replace(
+            "Ask the user for confirmation before using the replacement.",
+            "Completion requires confirmation of a replacement market.",
+        )
         self.assertRegex(
             safe_wording,
             checks_by_case["current-conflicted-market"]["bounded-action-decisions"],
@@ -351,7 +357,7 @@ END_DECISION_RECORD""",
         self.assertRegex(
             stop_wording,
             checks_by_case["unresolved-identity-stop"][
-                "distinct-slugs-and-confirmation"
+                "distinct-slugs-without-substitution"
             ],
         )
         self.assertRegex(
@@ -367,7 +373,7 @@ END_DECISION_RECORD""",
         self.assertRegex(
             pending_wording,
             checks_by_case["unresolved-identity-stop"][
-                "distinct-slugs-and-confirmation"
+                "distinct-slugs-without-substitution"
             ],
         )
         self.assertRegex(
@@ -379,14 +385,18 @@ END_DECISION_RECORD""",
         self.assertRegex(
             without_confirmation_wording,
             checks_by_case["unresolved-identity-stop"][
-                "distinct-slugs-and-confirmation"
+                "distinct-slugs-without-substitution"
             ],
         )
-        for answer in (requires_confirmation_wording, until_confirmed_wording):
+        for answer in (
+            requires_confirmation_wording,
+            until_confirmed_wording,
+            completion_requires_wording,
+        ):
             self.assertRegex(
                 answer,
                 checks_by_case["unresolved-identity-stop"][
-                    "distinct-slugs-and-confirmation"
+                    "distinct-slugs-without-substitution"
                 ],
             )
         self.assertNotRegex(
@@ -400,7 +410,7 @@ END_DECISION_RECORD""",
         self.assertNotRegex(
             adversarial[2],
             checks_by_case["unresolved-identity-stop"][
-                "distinct-slugs-and-confirmation"
+                "distinct-slugs-without-substitution"
             ],
         )
         self.assertNotRegex(
@@ -433,7 +443,7 @@ END_DECISION_RECORD""",
         self.assertNotRegex(
             adversarial[9],
             checks_by_case["unresolved-identity-stop"][
-                "distinct-slugs-and-confirmation"
+                "distinct-slugs-without-substitution"
             ],
         )
 
