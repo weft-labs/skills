@@ -1,0 +1,88 @@
+{
+  "version": 1,
+  "skill": "polymarket-research",
+  "generated_at": "2026-09-02T22:52:01Z",
+  "manifest_digest": "9579330a74af97a46775a401f906e97b2d981266d3e3a84536834677931f9434",
+  "skill_digest": "9116abb6a401f568d4299b1255dc08e58ec049274e35a67d67f224aa594d683e",
+  "minimum_repetitions": 3,
+  "results": [
+    {
+      "harness": "codex",
+      "model": "gpt-5.6-sol",
+      "arm": "without_weft",
+      "valid_runs": 9,
+      "excluded_pairs": 0,
+      "median_time_seconds": 24.362,
+      "accomplishment_rate": 0.6667,
+      "median_tokens": 19130
+    },
+    {
+      "harness": "codex",
+      "model": "gpt-5.6-sol",
+      "arm": "with_weft",
+      "valid_runs": 9,
+      "excluded_pairs": 0,
+      "median_time_seconds": 28.58,
+      "accomplishment_rate": 0.6667,
+      "median_tokens": 38516
+    }
+  ],
+  "deltas": [
+    {
+      "harness": "codex",
+      "model": "gpt-5.6-sol",
+      "time_seconds": 4.218,
+      "accomplishment_percentage_points": 0.0,
+      "tokens": 19386
+    }
+  ],
+  "case_coverage": [
+    {
+      "harness": "codex",
+      "model": "gpt-5.6-sol",
+      "case_id": "current-conflicted-market",
+      "valid_pairs": 3,
+      "excluded_pairs": 0
+    },
+    {
+      "harness": "codex",
+      "model": "gpt-5.6-sol",
+      "case_id": "historical-cutoff-integrity",
+      "valid_pairs": 3,
+      "excluded_pairs": 0
+    },
+    {
+      "harness": "codex",
+      "model": "gpt-5.6-sol",
+      "case_id": "unresolved-identity-stop",
+      "valid_pairs": 3,
+      "excluded_pairs": 0
+    }
+  ],
+  "exclusions": {
+    "pairs": 0,
+    "reasons": {},
+    "by_target": {}
+  },
+  "claim_scope": "Measures whether the model follows the committed Polymarket Research procedure on three frozen offline dossiers: a current conflicted market, a historical-cutoff request, and an unresolved market identity. It does not measure live web or API research, source freshness, probability calibration, forecast accuracy, trading performance, profitability, or paid-provider execution.",
+  "repetitions_run": 3,
+  "targets": [
+    {
+      "harness": "codex",
+      "model": "gpt-5.6-sol",
+      "harness_version": "codex-cli 0.152.1",
+      "model_configuration": "model identifier only; hosted model revision unavailable; harness-default reasoning and sampling; user config ignored; tools and network disabled"
+    }
+  ],
+  "test_evidence": false,
+  "case_ids": [
+    "current-conflicted-market",
+    "historical-cutoff-integrity",
+    "unresolved-identity-stop"
+  ],
+  "manifest_case_ids": [
+    "current-conflicted-market",
+    "historical-cutoff-integrity",
+    "unresolved-identity-stop"
+  ]
+}

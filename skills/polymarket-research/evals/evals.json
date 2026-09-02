@@ -1,0 +1,72 @@
+{
+  "skill_name": "polymarket-research",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "Do a thorough politics research brief for https://polymarket.com/event/who-will-trump-speak-to-in-september/will-trump-speak-to-mark-carney-in-september. Use parallel research agents if available. Tell me what the contract actually requires, collect the current public market state, find evidence for both sides, and explain the biggest uncertainty. Do not give me a trading instruction.",
+      "expected_output": "A timestamped contract-first brief that resolves the exact selected leg, checks the credible-reporting and three-day confirmation clauses, reports current executable market data with health caveats, cites both sides, and gives no execution instruction.",
+      "files": [],
+      "expectations": [
+        "The report identifies the exact Mark Carney selected leg and keeps it distinct from the parent event and other September conversation markets.",
+        "The settlement summary states that qualifying speaking is verbal interaction in person, by phone, or by video during September 1-30, 2026 through 11:59 PM ET.",
+        "The report explains the credible-media-reporting rule, the conditional use of statements by either person or representatives, contradiction handling, and the third-calendar-day confirmation deadline.",
+        "Current market state includes observed-at times and executable bid/ask, spread, and useful depth, or explicitly marks each unavailable value and lowers a stated data-health grade.",
+        "Material evidence includes both YES-supporting and NO-supporting evidence, links primary official sources and reputable reporting, and records publication, event, or retrieval times.",
+        "The evidence cutoff is no earlier than every material source retrieval or live-market observation recorded in the report.",
+        "The report distinguishes established facts, attributed source claims, and the agent's inferences, and names the biggest unresolved uncertainty.",
+        "The report contains unknowns, invalidation conditions, and next catalysts tied to sources or dates.",
+        "The report gives no BUY, SELL, position-size, order-placement, or guaranteed-profit instruction and states that it is point-in-time research rather than financial advice."
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Analyze this company earnings market: https://polymarket.com/event/adbe-quarterly-earnings-nongaap-eps-09-10-2026-6pt08?outcomeIndex=1. I want a cited pre-decision report, not a BUY or SELL call. Check the exact EPS threshold and fallback hierarchy, current price and liquidity, Adobe's official materials, analyst consensus evidence, the strongest counter-case, and what would change the analysis.",
+      "expected_output": "A company-event brief that distinguishes non-GAAP from GAAP EPS, preserves the exact threshold and 96-hour fallback rules, prioritizes Adobe documents, labels market-state observations, and separates evidence from inference.",
+      "files": [],
+      "expectations": [
+        "The report identifies the exact Adobe market and states that YES requires reported non-GAAP EPS greater than $6.08, not equal to it.",
+        "The settlement summary preserves the source hierarchy: Adobe official earnings documents, Seeking Alpha non-GAAP EPS if needed, then after 96 hours Adobe GAAP EPS or Seeking Alpha GAAP EPS.",
+        "The settlement summary covers the 45-day no-release NO backstop, primary-headline EPS variant precedence, diluted-versus-basic handling, and the rule for obvious immediate corrections versus later restatements.",
+        "Current market state includes observed-at times and executable bid/ask, spread, and useful depth, or explicitly marks each unavailable value and lowers a stated data-health grade.",
+        "The evidence uses Adobe investor-relations or filed company material as a primary source, identifies the analyst-consensus source, and presents material evidence for both outcomes.",
+        "Material evidence records publication, event, or retrieval times and separates source facts from the report's inferences.",
+        "The report names the strongest counter-case, unresolved facts, invalidation conditions, and the next earnings catalyst.",
+        "The report does not silently treat the Polymarket display price or last trade as an executable quote.",
+        "The report gives no BUY, SELL, position-size, order-placement, or guaranteed-profit instruction and states that it is point-in-time research rather than financial advice."
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "Research this sports market in depth: https://polymarket.com/event/2026-mens-us-open-winner-tennis. Map all relevant outcome legs, report current bid/ask and depth for the leading contenders, verify the official US Open resolution and cancellation rules, then search current draw, results, injury, and form evidence for and against the leaders. Be explicit about stale or missing data and do not place any trade.",
+      "expected_output": "A sports brief that keeps event and outcome identities separate, uses official US Open evidence, reports executable prices and depth with timestamps, covers cancellation and the Other outcome, and presents balanced cases without execution.",
+      "files": [],
+      "expectations": [
+        "The report keeps the US Open event, individual outcome legs, and leading contenders separate instead of treating one displayed outcome as the whole market.",
+        "The settlement summary covers official tournament winner, early NO when a player cannot win, cancellation or postponement after October 31, 2026, the Other outcome, and official US Open information as primary source.",
+        "Current market state gives observed-at times and executable bid/ask plus useful depth for leading contenders, or explicitly marks missing values and lowers a stated data-health grade.",
+        "Research uses current official draw or result evidence and credible injury or form evidence for and against more than one leading contender.",
+        "Material evidence records publication, event, or retrieval times, source class, and the contract effect of the evidence.",
+        "The report flags stale, empty, or conflicting data and does not claim complete historical level-two coverage or trader intent.",
+        "The report contains balanced outcome cases, unknowns, invalidation conditions, and the next tournament catalysts.",
+        "The report gives no BUY, SELL, position-size, order-placement, or guaranteed-profit instruction and states that it is point-in-time research rather than financial advice."
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Prepare a refreshed research report on https://polymarket.com/event/adbe-quarterly-earnings-nongaap-eps-09-10-2026-6pt08?outcomeIndex=1. The public page is insufficient to reconstruct past market state or assess public position concentration, and ordinary web research may omit useful machine-readable evidence. Close material data gaps where useful. Explain which other data categories cannot change this company-contract report. Do not spend money, connect a wallet, request credentials, or place a trade. Report the sources found, observed costs, intended use, input and output fit, and authority or inference limits.",
+      "expected_output": "A provider-neutral acquisition plan based on free live Weft searches for applicable Polymarket history, public positioning, social/news discovery, and company evidence. It must record live operations and prices without buying data, keep official sources authoritative, and refuse intent or insider inferences from public activity.",
+      "files": [],
+      "expectations": [
+        "The response performs free live Weft catalog searches before declaring the structured-data gaps unavailable and does not rely only on remembered provider names.",
+        "The catalog search covers Polymarket historical orderbooks, trades, OHLCV or volume for historical market-state reconstruction.",
+        "The catalog search covers holders, wallet positions, concentration, or public positioning and states that public activity does not prove motive, coordination, or inside information.",
+        "The catalog search covers X, Reddit, structured news, or sentiment discovery and treats social results as leads rather than settlement facts.",
+        "The catalog search covers SEC facts, filings, earnings history, transcripts, estimates, or equivalent structured company evidence while keeping Adobe and the named settlement source authoritative.",
+        "The response records observed provider operations and prices as point-in-time catalog facts, while stating that live contracts and prices remain authoritative.",
+        "The response explains why unrelated sports or weather searches are not needed for this company contract instead of searching every catalog category mechanically.",
+        "No paid fetch occurs, no wallet credentials are requested, and no provider result is treated as a trading instruction or guaranteed edge.",
+        "The response uses one routing ledger for every applicable or irrelevant capability class with searched or skipped status, a report-specific reason, the strongest contract-complete provider and operation or none found, observed price and retrieval time, contract-fit result or gap, and an explicit statement that no paid operation was called and no funds were held."
+      ]
+    }
+  ]
+}

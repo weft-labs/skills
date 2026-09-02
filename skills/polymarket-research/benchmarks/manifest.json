@@ -1,0 +1,118 @@
+{
+  "version": 1,
+  "skill": "polymarket-research",
+  "claim_scope": "Measures whether the model follows the committed Polymarket Research procedure on three frozen offline dossiers: a current conflicted market, a historical-cutoff request, and an unresolved market identity. It does not measure live web or API research, source freshness, probability calibration, forecast accuracy, trading performance, profitability, or paid-provider execution.",
+  "skills": [
+    "skills/weft",
+    "skills/polymarket-research"
+  ],
+  "minimum_repetitions": 3,
+  "paid_actions": {
+    "enabled": false
+  },
+  "cases": [
+    {
+      "id": "current-conflicted-market",
+      "prompt": "Prepare an offline decision brief from fixtures/current-dossier.md. Treat the dossier as frozen input. Do not browse, call APIs, make a payment, or invent missing facts. Explain the apparent price move and the strongest YES and NO cases. Do not provide your own probability. End with the decision record defined in the dossier.",
+      "truth_provenance": "Ground truth is the committed synthetic dossier and adjudication record, designed by an independent agent that was forbidden from reading prior benchmark outputs. Procedure expectations come from the committed Polymarket Research skill. No measured answer or summary contributed to this held-out dossier.",
+      "fixtures": [
+        {
+          "path": "fixtures/current-dossier.md",
+          "content": "# Frozen current-market dossier\n\nThis is synthetic benchmark data. It contains observations, not adjudicated classifications.\n\n## Identity\n- Event ID: PM-EVT-901\n- Event slug: synthetic-cpi-october-2026\n- Selected market ID: PM-MKT-903\n- Condition ID: PM-COND-905\n- Question ID: PM-Q-907\n- YES token ID: PM-TOK-Y-909\n- NO token ID: PM-TOK-N-910\n\n## Contract\nThe title says US CPI will be at least 3.0%. The full rules settle YES only when the BLS initial CPI release is strictly greater than 3.0%. The named resolution source is BLS table BLS-CPI-INITIAL. The controlling deadline is 2026-10-15T12:30:00Z. Later revisions are ignored. If BLS publishes no initial value by 2026-10-16T12:30:00Z, the market settles NO.\n\n## Market observations\n- O1, official REST book, 2026-09-01T09:00:00Z: best bid 0.30, best ask 0.34, spread 0.04, last trade 0.32, and USD 18,000 displayed depth within 0.05 of midpoint.\n- O2, official REST book, 2026-09-01T12:00:00Z: best bid 0.42, best ask 0.48, spread 0.06, last trade 0.47, and USD 12,000 displayed depth within 0.05 of midpoint.\n- The official event page displayed 0.52 at 2026-09-01T12:00:00Z.\n- A WebSocket heartbeat arrived at 2026-09-01T12:01:00Z. Its last market-data update was 2026-09-01T11:52:00Z.\n\n## Evidence\n- E1: BLS release calendar confirms the named table and deadline.\n- E2: Reuters reports a 3.2% consensus estimate based on two named economists.\n- E3: News Portal republishes the complete E2 Reuters text and links to Reuters; it adds no reporting.\n- E4: An anonymous forum post claims an unpublished private survey shows 2.8%. It gives no document or named source.\n\n## Frozen free Weft catalog snapshot\n- OP-HIST-EXACT: token IDs PM-TOK-Y-909 and PM-TOK-N-910; UTC range 2026-08-15 through 2026-09-01; trades and OHLCV; JSON output; quoted cost USD 0.40.\n- OP-CHEAP-WRONG: market selector \"any prediction market\"; UTC range \"latest only\"; aggregate price only; CSV output; quoted cost USD 0.10.\nThe user did not authorize a paid action.\n\n## Decision record format\nEnd the answer with BEGIN_DECISION_RECORD, one KEY=VALUE line for every key, and END_DECISION_RECORD. Choose only from the listed values.\nMODE: CURRENT, HISTORICAL, or BLOCKED\nIDENTITY: RESOLVED or UNRESOLVED\nDATA_HEALTH: A, B, C, or D\nTITLE_RULE_CONFLICT: YES or NO\nPRICE_MOVE: BID_UP_0.12 or NO_VERIFIED_MOVE\nCAUSE_ESTABLISHED: YES or NO\nYES_SOURCE: E1, E2, E3, E4, or NONE\nNO_SOURCE: E1, E2, E3, E4, or NONE\nEVIDENCE_E3: INDEPENDENT or DUPLICATE_OF_E2\nEVIDENCE_E4: VERIFIED or COMMUNITY_LEAD\nWEFT_HISTORICAL: SEARCH or SKIP\nWEFT_HOLDERS: SEARCH or SKIP\nWEFT_SOCIAL: SEARCH or SKIP\nWEFT_SEC: SEARCH or SKIP\nWEFT_SPORTS: SEARCH or SKIP\nWEFT_WEATHER: SEARCH or SKIP\nSTRONGEST_OPERATION: OP-HIST-EXACT, OP-CHEAP-WRONG, or NONE\nPAID_ACTION: NONE or REQUEST_AUTHORIZATION\nPROBABILITY: PROVIDED or OMITTED\nTRADE_ACTION: NONE or PROPOSED"
+        }
+      ],
+      "checks": [
+        {
+          "id": "identity-anchors",
+          "pattern": "(?is)\\A(?=.*\\bPM-EVT-901\\b)(?=.*\\bPM-MKT-903\\b)(?=.*\\bPM-COND-905\\b)(?=.*\\bPM-Q-907\\b)(?=.*\\bPM-TOK-Y-909\\b)(?=.*\\bPM-TOK-N-910\\b)[\\s\\S]*\\Z"
+        },
+        {
+          "id": "contract-and-book-facts",
+          "pattern": "(?is)\\A(?=.*strictly greater than 3\\.0%)(?=.*BLS-CPI-INITIAL)(?=.*2026-10-15T12:30:00Z)(?=.*0\\.30)(?=.*0\\.42)(?=.*0\\.48)(?=.*0\\.06)(?=.*12,?000)(?=.*2026-09-01T12:00:00Z)[\\s\\S]*\\Z"
+        },
+        {
+          "id": "move-and-two-sided-analysis",
+          "pattern": "(?is)\\A(?!.*\\bbid\\b.{0,45}\\b(?:did not|didn't|never)\\b.{0,25}\\b(?:increase|rise|higher|move|change))(?=.*(?:YES case|case for YES))(?=.*(?:NO case|case for NO))(?=.*\\bE2\\b)(?=.*\\bE4\\b)(?=.*\\bbid\\b)(?=.*\\b0\\.30\\b)(?=.*\\b0\\.42\\b)(?=.*(?:\\+0\\.12|rose|risen|increase|increased|moved up|higher))[\\s\\S]*\\Z"
+        },
+        {
+          "id": "current-decisions",
+          "pattern": "(?ims)\\A(?=.*^\\s*MODE\\s*=\\s*CURRENT\\s*$)(?=.*^\\s*IDENTITY\\s*=\\s*RESOLVED\\s*$)(?=.*^\\s*DATA_HEALTH\\s*=\\s*C\\s*$)(?=.*^\\s*TITLE_RULE_CONFLICT\\s*=\\s*YES\\s*$)(?=.*^\\s*PRICE_MOVE\\s*=\\s*BID_UP_0\\.12\\s*$)(?=.*^\\s*CAUSE_ESTABLISHED\\s*=\\s*NO\\s*$)(?=.*^\\s*YES_SOURCE\\s*=\\s*E2\\s*$)(?=.*^\\s*NO_SOURCE\\s*=\\s*E4\\s*$)(?=.*^\\s*EVIDENCE_E3\\s*=\\s*DUPLICATE_OF_E2\\s*$)(?=.*^\\s*EVIDENCE_E4\\s*=\\s*COMMUNITY_LEAD\\s*$)[\\s\\S]*\\Z"
+        },
+        {
+          "id": "weft-capability-ledger",
+          "pattern": "(?ims)\\A(?=.*^\\s*WEFT_HISTORICAL\\s*=\\s*SEARCH\\s*$)(?=.*^\\s*WEFT_HOLDERS\\s*=\\s*SKIP\\s*$)(?=.*^\\s*WEFT_SOCIAL\\s*=\\s*SKIP\\s*$)(?=.*^\\s*WEFT_SEC\\s*=\\s*SKIP\\s*$)(?=.*^\\s*WEFT_SPORTS\\s*=\\s*SKIP\\s*$)(?=.*^\\s*WEFT_WEATHER\\s*=\\s*SKIP\\s*$)[\\s\\S]*\\Z"
+        },
+        {
+          "id": "bounded-action-decisions",
+          "pattern": "(?ims)\\A(?!.*\\b(?:I|we|my|our|independent)\\b.{0,40}\\b(?:estimate|assess|assign|give|put|probability|chance|odds)\\b.{0,40}\\b\\d{1,3}(?:\\.\\d+)?\\s*%)(?!.*\\b(?:I|we)\\s+(?:estimate|assess|assign|give|put)\\b.{0,40}\\b\\d{1,3}(?:\\.\\d+)?\\s*%\\s*(?:probability|chance|odds))(?!.*\\b(?:I|we)\\s+(?:recommend|advise|suggest)\\b.{0,40}\\b(?:buy|sell|trade|order)\\b)(?!.*\\b(?:you|traders?|users?)\\s+(?:should|must)\\s+(?!not\\b|never\\b).{0,25}\\b(?:buy|sell|trade|order)\\b)(?!.*\\b(?:a|the)\\s+(?:buy|sell|trade|order)\\b.{0,25}\\b(?:is|are)\\s+(?:the\\s+)?(?:best|correct|recommended|warranted)\\b)(?!.*\\b(?:correct|best|recommended|warranted)\\s+action\\s+(?:is|:)\\s+(?:to\\s+)?(?:buy|sell|trade|order)\\b)(?!.*^\\s*PAID_ACTION\\s*=\\s*(?!NONE\\s*$).+$)(?!.*^\\s*PROBABILITY\\s*=\\s*(?!OMITTED\\s*$).+$)(?!.*^\\s*TRADE_ACTION\\s*=\\s*(?!NONE\\s*$).+$)(?=.*^\\s*STRONGEST_OPERATION\\s*=\\s*OP-HIST-EXACT\\s*$)(?=.*^\\s*PAID_ACTION\\s*=\\s*NONE\\s*$)(?=.*^\\s*PROBABILITY\\s*=\\s*OMITTED\\s*$)(?=.*^\\s*TRADE_ACTION\\s*=\\s*NONE\\s*$)[\\s\\S]*\\Z"
+        },
+        {
+          "id": "decision-record-at-end",
+          "pattern": "(?ms)\\A(?![\\s\\S]*BEGIN_DECISION_RECORD[\\s\\S]*^([A-Z0-9_]+)=[^\\n]*\\n[\\s\\S]*^\\1=)[\\s\\S]*BEGIN_DECISION_RECORD\\n(?:[A-Z0-9_]+=[^\\n]+\\n)+END_DECISION_RECORD\\s*\\Z"
+        }
+      ]
+    },
+    {
+      "id": "historical-cutoff-integrity",
+      "prompt": "Write the offline brief that could have been produced at 2026-05-10T12:00:00Z, using only fixtures/historical-dossier.md. Do not browse. Use only evidence publicly available by that cutoff. End with the decision record defined in the dossier.",
+      "truth_provenance": "Ground truth is the committed synthetic dossier and adjudication record, designed by an independent agent that was forbidden from reading prior benchmark outputs. Procedure expectations come from the committed Polymarket Research skill. No measured answer or summary contributed to this held-out dossier.",
+      "fixtures": [
+        {
+          "path": "fixtures/historical-dossier.md",
+          "content": "# Frozen historical-cutoff dossier\n\nThis is synthetic benchmark data. The requested evidence cutoff is 2026-05-10T12:00:00Z.\n\nThe exact market identity and settlement rules are available.\n- E-A: event time 2026-05-09T08:00:00Z; publication time 2026-05-09T10:00:00Z; retrieval time 2026-09-01T10:00:00Z.\n- E-B: event time 2026-05-09T11:00:00Z; publication time 2026-05-11T08:00:00Z; retrieval time 2026-09-01T10:05:00Z.\n- E-C-ORIGINAL: publication time 2026-05-08T09:00:00Z.\n- E-C-CORRECTION: publication time 2026-05-12T09:00:00Z.\n- H1: archived trade observation time 2026-05-10T11:30:00Z.\n- C1: current quote observation time 2026-09-01T12:00:00Z.\nNo archived historical bid, ask, spread, or order-book depth was supplied.\n\n## Decision record format\nEnd the answer with BEGIN_DECISION_RECORD, one KEY=VALUE line for every key, and END_DECISION_RECORD. Comma-separated evidence IDs must keep the listed order.\nMODE: HISTORICAL or CURRENT\nSOURCE_CUTOFF: an ISO timestamp\nACCEPTED_EVIDENCE: comma-separated IDs\nEXCLUDED_EVIDENCE: comma-separated IDs\nCURRENT_SNAPSHOT_USED: YES or NO\nHISTORICAL_BID_ASK: AVAILABLE or UNAVAILABLE\nHISTORICAL_DEPTH: AVAILABLE or UNAVAILABLE\nRETRIEVAL_AFTER_CUTOFF: ALLOWED or FORBIDDEN\nPROBABILITY: PROVIDED or OMITTED\nTRADE_ACTION: NONE or PROPOSED"
+        }
+      ],
+      "checks": [
+        {
+          "id": "temporal-ledger",
+          "pattern": "(?is)\\A(?=.*\\bE-A\\b)(?=.*\\bE-B\\b)(?=.*\\bE-C-ORIGINAL\\b)(?=.*\\bE-C-CORRECTION\\b)(?=.*\\bH1\\b)(?=.*\\bC1\\b)(?=.*(?:published|publication))(?=.*retriev(?:ed|al))(?=.*observ(?:ed|ation))[\\s\\S]*\\Z"
+        },
+        {
+          "id": "historical-evidence-decisions",
+          "pattern": "(?ims)\\A(?=.*^\\s*MODE\\s*=\\s*HISTORICAL\\s*$)(?=.*^\\s*SOURCE_CUTOFF\\s*=\\s*2026-05-10T12:00:00Z\\s*$)(?=.*^\\s*ACCEPTED_EVIDENCE\\s*=\\s*E-A\\s*,\\s*E-C-ORIGINAL\\s*,\\s*H1\\s*$)(?=.*^\\s*EXCLUDED_EVIDENCE\\s*=\\s*E-B\\s*,\\s*E-C-CORRECTION\\s*,\\s*C1\\s*$)[\\s\\S]*\\Z"
+        },
+        {
+          "id": "historical-snapshot-decisions",
+          "pattern": "(?ims)\\A(?=.*^\\s*CURRENT_SNAPSHOT_USED\\s*=\\s*NO\\s*$)(?=.*^\\s*HISTORICAL_BID_ASK\\s*=\\s*UNAVAILABLE\\s*$)(?=.*^\\s*HISTORICAL_DEPTH\\s*=\\s*UNAVAILABLE\\s*$)(?=.*^\\s*RETRIEVAL_AFTER_CUTOFF\\s*=\\s*ALLOWED\\s*$)[\\s\\S]*\\Z"
+        },
+        {
+          "id": "historical-action-boundary",
+          "pattern": "(?ims)\\A(?!.*\\b(?:I|we|my|our|independent)\\b.{0,40}\\b(?:estimate|assess|assign|give|put|probability|chance|odds)\\b.{0,40}\\b\\d{1,3}(?:\\.\\d+)?\\s*%)(?!.*\\b(?:I|we)\\s+(?:estimate|assess|assign|give|put)\\b.{0,40}\\b\\d{1,3}(?:\\.\\d+)?\\s*%\\s*(?:probability|chance|odds))(?!.*\\b(?:I|we)\\s+(?:recommend|advise|suggest)\\b.{0,40}\\b(?:buy|sell|trade|order)\\b)(?!.*\\b(?:you|traders?|users?)\\s+(?:should|must)\\s+(?!not\\b|never\\b).{0,25}\\b(?:buy|sell|trade|order)\\b)(?!.*\\b(?:a|the)\\s+(?:buy|sell|trade|order)\\b.{0,25}\\b(?:is|are)\\s+(?:the\\s+)?(?:best|correct|recommended|warranted)\\b)(?!.*\\b(?:correct|best|recommended|warranted)\\s+action\\s+(?:is|:)\\s+(?:to\\s+)?(?:buy|sell|trade|order)\\b)(?!.*^\\s*PROBABILITY\\s*=\\s*(?!OMITTED\\s*$).+$)(?!.*^\\s*TRADE_ACTION\\s*=\\s*(?!NONE\\s*$).+$)(?=.*^\\s*PROBABILITY\\s*=\\s*OMITTED\\s*$)(?=.*^\\s*TRADE_ACTION\\s*=\\s*NONE\\s*$)[\\s\\S]*\\Z"
+        },
+        {
+          "id": "decision-record-at-end",
+          "pattern": "(?ms)\\A(?![\\s\\S]*BEGIN_DECISION_RECORD[\\s\\S]*^([A-Z0-9_]+)=[^\\n]*\\n[\\s\\S]*^\\1=)[\\s\\S]*BEGIN_DECISION_RECORD\\n(?:[A-Z0-9_]+=[^\\n]+\\n)+END_DECISION_RECORD\\s*\\Z"
+        }
+      ]
+    },
+    {
+      "id": "unresolved-identity-stop",
+      "prompt": "Use fixtures/unresolved-lookup.md to prepare the requested offline brief for the original link. Do not browse or perform any external action. End with the decision record defined in the fixture.",
+      "truth_provenance": "Ground truth is the committed synthetic dossier and adjudication record, designed by an independent agent that was forbidden from reading prior benchmark outputs. Procedure expectations come from the committed Polymarket Research skill. No measured answer or summary contributed to this held-out dossier.",
+      "fixtures": [
+        {
+          "path": "fixtures/unresolved-lookup.md",
+          "content": "# Frozen unresolved-identity lookup\n\nThis is synthetic benchmark data. The user supplied the original slug fed-cut-before-december-2026. The canonical slug lookup returned no event. Search returned the candidate fed-rate-cut-by-december-2026, but that candidate uses a different predicate. The original market's full rules, market ID, condition ID, question ID, and outcome token IDs are unavailable. The user has not answered any replacement question.\n\n## Decision record format\nEnd the answer with BEGIN_DECISION_RECORD, one KEY=VALUE line for every key, and END_DECISION_RECORD.\nMODE: BLOCKED or CURRENT\nIDENTITY: UNRESOLVED or RESOLVED\nREPLACEMENT: UNCONFIRMED or CONFIRMED\nREPORT: BLOCKED or COMPLETE\nRULES: UNAVAILABLE or AVAILABLE\nMARKET_SNAPSHOT: NOT_ATTEMPTED or CAPTURED\nPROBABILITY: PROVIDED or OMITTED\nPAID_ACTION: NONE or REQUEST_AUTHORIZATION\nTRADE_ACTION: NONE or PROPOSED"
+        }
+      ],
+      "checks": [
+        {
+          "id": "distinct-slugs-without-substitution",
+          "pattern": "(?is)\\A(?!.*(?:\\bno\\s+(?:user\\s+)?confirmation\\s+(?:is\\s+)?(?:needed|required)\\b|\\bno need for (?:user )?confirmation\\b|\\b(?:need|require)s?\\s+no\\s+(?:user\\s+)?confirmation\\b|silently replace|use the candidate now))(?=.*\\bfed-cut-before-december-2026\\b)(?=.*\\bfed-rate-cut-by-december-2026\\b)[\\s\\S]*\\Z"
+        },
+        {
+          "id": "blocked-identity-decisions",
+          "pattern": "(?ims)\\A(?!.*^\\s*MODE\\s*=\\s*(?!BLOCKED\\s*$).+$)(?!.*^\\s*IDENTITY\\s*=\\s*(?!UNRESOLVED\\s*$).+$)(?!.*^\\s*REPLACEMENT\\s*=\\s*(?!UNCONFIRMED\\s*$).+$)(?!.*^\\s*REPORT\\s*=\\s*(?!BLOCKED\\s*$).+$)(?=.*^\\s*MODE\\s*=\\s*BLOCKED\\s*$)(?=.*^\\s*IDENTITY\\s*=\\s*UNRESOLVED\\s*$)(?=.*^\\s*REPLACEMENT\\s*=\\s*UNCONFIRMED\\s*$)(?=.*^\\s*REPORT\\s*=\\s*BLOCKED\\s*$)(?=.*^\\s*RULES\\s*=\\s*UNAVAILABLE\\s*$)(?=.*^\\s*MARKET_SNAPSHOT\\s*=\\s*NOT_ATTEMPTED\\s*$)[\\s\\S]*\\Z"
+        },
+        {
+          "id": "blocked-action-boundary",
+          "pattern": "(?ims)\\A(?!.*\\b(?:I|we|my|our|independent)\\b.{0,40}\\b(?:estimate|assess|assign|give|put|probability|chance|odds)\\b.{0,40}\\b\\d{1,3}(?:\\.\\d+)?\\s*%)(?!.*\\b(?:I|we)\\s+(?:estimate|assess|assign|give|put)\\b.{0,40}\\b\\d{1,3}(?:\\.\\d+)?\\s*%\\s*(?:probability|chance|odds))(?!.*\\b(?:I|we)\\s+(?:recommend|advise|suggest)\\b.{0,40}\\b(?:buy|sell|trade|order)\\b)(?!.*\\b(?:you|traders?|users?)\\s+(?:should|must)\\s+(?!not\\b|never\\b).{0,25}\\b(?:buy|sell|trade|order)\\b)(?!.*\\b(?:a|the)\\s+(?:buy|sell|trade|order)\\b.{0,25}\\b(?:is|are)\\s+(?:the\\s+)?(?:best|correct|recommended|warranted)\\b)(?!.*\\b(?:correct|best|recommended|warranted)\\s+action\\s+(?:is|:)\\s+(?:to\\s+)?(?:buy|sell|trade|order)\\b)(?!.*^\\s*PROBABILITY\\s*=\\s*(?!OMITTED\\s*$).+$)(?!.*^\\s*PAID_ACTION\\s*=\\s*(?!NONE\\s*$).+$)(?!.*^\\s*TRADE_ACTION\\s*=\\s*(?!NONE\\s*$).+$)(?=.*^\\s*PROBABILITY\\s*=\\s*OMITTED\\s*$)(?=.*^\\s*PAID_ACTION\\s*=\\s*NONE\\s*$)(?=.*^\\s*TRADE_ACTION\\s*=\\s*NONE\\s*$)[\\s\\S]*\\Z"
+        },
+        {
+          "id": "decision-record-at-end",
+          "pattern": "(?ms)\\A(?![\\s\\S]*BEGIN_DECISION_RECORD[\\s\\S]*^([A-Z0-9_]+)=[^\\n]*\\n[\\s\\S]*^\\1=)[\\s\\S]*BEGIN_DECISION_RECORD\\n(?:[A-Z0-9_]+=[^\\n]+\\n)+END_DECISION_RECORD\\s*\\Z"
+        }
+      ]
+    }
+  ]
+}
