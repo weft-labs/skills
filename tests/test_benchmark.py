@@ -966,6 +966,126 @@ class BenchmarkContractTest(unittest.TestCase):
         self.assertIsNone(self.benchmark.usage_total({"input": True, "output": 2}))
         self.assertIsNone(self.benchmark.usage_total({"input": -1, "output": 2}))
 
+    def test_public_evidence_sanitizer_redacts_paths_and_trace_ids(self):
+        native = "\n".join(
+            [
+                json.dumps(
+                    {
+                        "type": "thread.started",
+                        "thread_id": "01a0644b-7285-7540-b727-0d15a3f5fac5",
+                    }
+                ),
+                json.dumps(
+                    {
+                        "type": "item.completed",
+                        "item": {
+                            "type": "agent_message",
+                            "text": (
+                                "Verified result. /Users/alice/.codex/config.toml "
+                                "/private/var/folders/aa/bb/T/"
+                                "weft-benchmark-secret/fixtures/case.md"
+                            ),
+                        },
+                    }
+                ),
+                json.dumps(
+                    {
+                        "type": "turn.completed",
+                        "usage": {"input_tokens": 12, "output_tokens": 3},
+                    }
+                ),
+            ]
+        )
+        sanitized = self.benchmark.sanitize_native_output(
+            native, "codex", home_path=pathlib.Path("/Users/alice")
+        )
+        self.assertNotIn("alice", sanitized)
+        self.assertNotIn("01a0644b-7285-7540-b727-0d15a3f5fac5", sanitized)
+        self.assertNotIn("weft-benchmark-secret", sanitized)
+        self.assertIn("<HOME>/.codex/config.toml", sanitized)
+        self.assertIn("<BENCHMARK_WORKDIR>/fixtures/case.md", sanitized)
+        self.assertEqual(
+            (
+                "Verified result. <HOME>/.codex/config.toml "
+                "<BENCHMARK_WORKDIR>/fixtures/case.md",
+                15,
+            ),
+            self.benchmark.parse_codex_output(sanitized),
+        )
+        self.assertEqual(
+            "<HOME>/.codex/config.toml",
+            self.benchmark.sanitize_public_text(
+                "/root/.codex/config.toml", home_path=pathlib.Path("/root")
+            ),
+        )
+        self.assertEqual(
+            "https://example.com/home/alice/report",
+            self.benchmark.sanitize_public_text(
+                "https://example.com/home/alice/report",
+                home_path=pathlib.Path("/home/alice"),
+            ),
+        )
+        self.assertEqual(
+            "cwd:<HOME>/project",
+            self.benchmark.sanitize_public_text(
+                "cwd:/Users/alice/project",
+                home_path=pathlib.Path("/Users/alice"),
+            ),
+        )
+        self.assertEqual(
+            "<BENCHMARK_WORKDIR>/fixtures/case.md",
+            self.benchmark.sanitize_public_text(
+                "/scratch/alice/tmp/weft-benchmark-secret/fixtures/case.md",
+                home_path=pathlib.Path("/Users/alice"),
+                workdir_path=pathlib.Path(
+                    "/scratch/alice/tmp/weft-benchmark-secret"
+                ),
+            ),
+        )
+        self.assertEqual(
+            "file://<HOME>/project/file.py",
+            self.benchmark.sanitize_public_text(
+                "file:///Users/alice/project/file.py",
+                home_path=pathlib.Path("/Users/alice"),
+            ),
+        )
+        self.assertEqual(
+            "file://<BENCHMARK_WORKDIR>/run.json",
+            self.benchmark.sanitize_public_text(
+                "file:///var/folders/aa/bb/T/"
+                "weft-benchmark-secret/run.json",
+                home_path=pathlib.Path("/Users/alice"),
+            ),
+        )
+        malformed = '{"type":"thread.started","thread_id":"trace-secret'
+        self.assertNotIn(
+            "trace-secret",
+            self.benchmark.sanitize_native_output(
+                malformed, "codex", home_path=pathlib.Path("/Users/alice")
+            ),
+        )
+        unicode_answer = "line\u2028break"
+        unicode_native = "\n".join(
+            [
+                json.dumps(
+                    {
+                        "item": {
+                            "type": "agent_message",
+                            "text": unicode_answer,
+                        }
+                    },
+                    ensure_ascii=False,
+                ),
+                json.dumps({"usage": {"total_tokens": 2}}),
+            ]
+        )
+        self.assertEqual(
+            (unicode_answer, 2),
+            self.benchmark.parse_codex_output(
+                self.benchmark.sanitize_native_output(unicode_native, "codex")
+            ),
+        )
+
     def test_harness_environment_excludes_unrelated_secrets(self):
         for variable in (
             "COPILOT_GITHUB_TOKEN",
@@ -1450,6 +1570,7 @@ class BenchmarkContractTest(unittest.TestCase):
         self.assertIn("Complete / excluded pairs", block)
         self.assertIn("| 3 / 0 |", block)
         self.assertIn("Actual repetitions per case: 5.", block)
+        self.assertIn("redacts host paths", block)
         self.assertNotIn("assertion", block.lower())
         readme = "# Fixture\n\n<!-- weft-benchmark:start -->\nold\n<!-- weft-benchmark:end -->\n"
         updated = self.benchmark.replace_benchmark_block(readme, block)

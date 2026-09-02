@@ -32,6 +32,19 @@ SUPPORTED_HARNESSES = ("codex", "pi")
 START_MARKER = "<!-- weft-benchmark:start -->"
 END_MARKER = "<!-- weft-benchmark:end -->"
 BENCHMARK_CHART_PATH = "benchmarks/chart.svg"
+TRACE_ID_FIELDS = frozenset({"session_id", "thread_id", "turn_id"})
+BENCHMARK_WORKDIR_PATTERN = re.compile(
+    r"(?<![A-Za-z0-9/])"
+    r"(?:(?:/private)?/var/folders/[^/\s\"']+/[^/\s\"']+/T|/tmp|/var/tmp)/"
+    r"weft-benchmark-[^/\s\"']+"
+)
+FILE_URI_BENCHMARK_WORKDIR_PATTERN = re.compile(
+    r"file://(?:(?:/private)?/var/folders/[^/\s\"']+/[^/\s\"']+/T|"
+    r"/tmp|/var/tmp)/weft-benchmark-[^/\s\"']+"
+)
+TRACE_ID_TEXT_PATTERN = re.compile(
+    r'("(?:session_id|thread_id|turn_id)"\s*:\s*")[^"\r\n]*(?:"|$)'
+)
 CODEX_DISABLED_FEATURES = (
     "apps",
     "browser_use",
@@ -135,6 +148,141 @@ PI_ENVIRONMENT_NAMES = (
     "GOOGLE_CLOUD_LOCATION",
     "GOOGLE_CLOUD_QUOTA_PROJECT",
 )
+
+
+def sanitize_public_text(
+    value: str,
+    home_path: pathlib.Path | None = None,
+    workdir_path: pathlib.Path | None = None,
+) -> str:
+    def redact_trace_id(match: re.Match) -> str:
+        closing_quote = '"' if match.group(0).endswith('"') else ""
+        return f'{match.group(1)}<REDACTED>{closing_quote}'
+
+    value = TRACE_ID_TEXT_PATTERN.sub(redact_trace_id, value)
+    value = FILE_URI_BENCHMARK_WORKDIR_PATTERN.sub(
+        "file://<BENCHMARK_WORKDIR>", value
+    )
+    value = BENCHMARK_WORKDIR_PATTERN.sub("<BENCHMARK_WORKDIR>", value)
+    if workdir_path is not None:
+        workdir = workdir_path.as_posix().rstrip("/")
+        if workdir:
+            value = value.replace(f"file://{workdir}", "file://<BENCHMARK_WORKDIR>")
+            value = re.sub(
+                rf"(?<![A-Za-z0-9/]){re.escape(workdir)}"
+                rf"(?=(?:/|\\|\s|[\"'\])}}]|$))",
+                "<BENCHMARK_WORKDIR>",
+                value,
+            )
+    home = (home_path or pathlib.Path.home()).as_posix().rstrip("/")
+    if not home or home == ".":
+        return value
+    value = re.sub(
+        rf"file://{re.escape(home)}(?=(?:/|\\|\s|[\"'\])}}]|$))",
+        "file://<HOME>",
+        value,
+    )
+    pattern = re.compile(
+        rf"(?<![A-Za-z0-9/]){re.escape(home)}"
+        rf"(?=(?:/|\\|\s|[\"'\])}}]|$))"
+    )
+    return pattern.sub("<HOME>", value)
+
+
+def sanitize_public_value(
+    value,
+    key: str | None = None,
+    home_path: pathlib.Path | None = None,
+    workdir_path: pathlib.Path | None = None,
+):
+    if key in TRACE_ID_FIELDS:
+        return "<REDACTED>"
+    if isinstance(value, str):
+        return sanitize_public_text(value, home_path, workdir_path)
+    if isinstance(value, list):
+        return [
+            sanitize_public_value(
+                item, home_path=home_path, workdir_path=workdir_path
+            )
+            for item in value
+        ]
+    if isinstance(value, dict):
+        return {
+            item_key: sanitize_public_value(
+                item_value, item_key, home_path, workdir_path
+            )
+            for item_key, item_value in value.items()
+        }
+    return value
+
+
+def sanitize_native_output(
+    value: str,
+    harness: str,
+    home_path: pathlib.Path | None = None,
+    workdir_path: pathlib.Path | None = None,
+) -> str:
+    if not value:
+        return value
+    if harness == "codex":
+        lines = []
+        for line in value.split("\n"):
+            line = line.removesuffix("\r")
+            if not line:
+                continue
+            try:
+                payload = json.loads(line)
+            except json.JSONDecodeError:
+                lines.append(
+                    sanitize_public_text(line, home_path, workdir_path)
+                )
+            else:
+                lines.append(
+                    json.dumps(
+                        sanitize_public_value(
+                            payload,
+                            home_path=home_path,
+                            workdir_path=workdir_path,
+                        ),
+                        ensure_ascii=False,
+                        separators=(",", ":"),
+                    )
+                )
+        return "\n".join(lines) + ("\n" if value.endswith("\n") else "")
+    try:
+        payload = json.loads(value)
+    except json.JSONDecodeError:
+        return sanitize_public_text(value, home_path, workdir_path)
+    suffix = "\n" if value.endswith("\n") else ""
+    return json.dumps(
+        sanitize_public_value(
+            payload, home_path=home_path, workdir_path=workdir_path
+        ),
+        ensure_ascii=False,
+        separators=(",", ":"),
+    ) + suffix
+
+
+def sanitize_evidence_tree(root: pathlib.Path) -> None:
+    for path in sorted(root.rglob("*")):
+        if not path.is_file():
+            continue
+        original = path.read_text(encoding="utf-8")
+        if path.name == "raw.jsonl":
+            updated = sanitize_native_output(original, "codex")
+        elif path.suffix == ".json":
+            try:
+                payload = json.loads(original)
+            except json.JSONDecodeError:
+                updated = sanitize_public_text(original)
+            else:
+                updated = json.dumps(
+                    sanitize_public_value(payload), indent=2, ensure_ascii=False
+                ) + "\n"
+        else:
+            updated = sanitize_public_text(original)
+        if updated != original:
+            path.write_text(updated, encoding="utf-8")
 
 
 @dataclasses.dataclass(frozen=True)
@@ -877,7 +1025,8 @@ def text_content(value: object) -> str:
 
 
 def json_events(raw: str):
-    for line in raw.splitlines():
+    for line in raw.split("\n"):
+        line = line.removesuffix("\r")
         if not line.strip():
             continue
         try:
@@ -1157,6 +1306,8 @@ def execute_one(
                 command, room, env, timeout
             )
 
+    stdout = sanitize_native_output(stdout, target.harness, workdir_path=room)
+    stderr = sanitize_public_text(stderr, workdir_path=room)
     raw_name = "raw.jsonl" if target.harness == "codex" else "raw.json"
     (run_path / raw_name).write_text(stdout, encoding="utf-8")
     (run_path / "stderr.txt").write_text(stderr, encoding="utf-8")
@@ -1984,6 +2135,8 @@ def render_benchmark_block(
         f"**Claim scope:** {summary['claim_scope']}",
         "",
         "The same clean-room tasks run without the skill and with the skill. Results are descriptive paired observations; they do not establish causality or statistical significance. Headline metrics are maintainer-recorded harness process time, all committed checks passed, and total agent tokens.",
+        "",
+        "The evidence writer redacts host paths, clean-room temporary paths, and opaque harness trace IDs from published native transcripts. Answers and token telemetry remain inspectable.",
         "",
         f"![Benchmark chart]({chart_path})",
         "",
