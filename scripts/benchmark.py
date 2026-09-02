@@ -1682,16 +1682,17 @@ def render_benchmark_chart(summary: dict) -> str:
         }
         pairs.append((key, target_rows["without_weft"], target_rows["with_weft"]))
 
-    width = 960
-    group_height = 214
-    height = 96 + group_height * len(pairs)
+    width = 600
+    group_height = 468
+    height = 100 + group_height * len(pairs)
     lines = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}" role="img" aria-labelledby="title desc">',
         f'  <title id="title">Benchmark: {chart_text(summary["skill"])}</title>',
         '  <desc id="desc">Without skill and with skill comparison for time, accomplishment rate, and tokens.</desc>',
         '  <rect width="100%" height="100%" rx="18" fill="#f8fafc"/>',
         f'  <text x="32" y="40" fill="#0f172a" font-family="ui-sans-serif, system-ui, sans-serif" font-size="24" font-weight="700">Benchmark: {chart_text(summary["skill"])}</text>',
-        '  <text x="32" y="66" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14">Without skill versus with skill · lower time and tokens are better · higher accomplishment is better</text>',
+        '  <text x="32" y="64" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14">Without skill versus with skill</text>',
+        '  <text x="32" y="84" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">Lower time and tokens are better · higher accomplishment is better</text>',
     ]
     metrics = (
         ("Time", "median_time_seconds", lambda value: f"{chart_number(value)} s"),
@@ -1703,20 +1704,20 @@ def render_benchmark_chart(summary: dict) -> str:
         ("Tokens", "median_tokens", chart_number),
     )
     for target_index, (key, without, with_skill) in enumerate(pairs):
-        group_y = 100 + target_index * group_height
+        group_y = 120 + target_index * group_height
         label = f"{harness_title(key[0])} · {key[1]}"
         lines.append(
             f'  <text x="32" y="{group_y}" fill="#0f172a" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16" font-weight="650">{chart_text(label)}</text>'
         )
         for metric_index, (title, field, formatter) in enumerate(metrics):
-            x = 32 + metric_index * 300
-            y = group_y + 16
+            x = 24
+            y = group_y + 16 + metric_index * 140
             values = (without[field], with_skill[field])
             scale = 1.0 if field == "accomplishment_rate" else max(values) or 1.0
             lines.extend(
                 [
-                    f'  <rect x="{x}" y="{y}" width="280" height="166" rx="12" fill="#ffffff" stroke="#cbd5e1"/>',
-                    f'  <text x="{x + 16}" y="{y + 28}" fill="#334155" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14" font-weight="700">{chart_text(title)}</text>',
+                    f'  <rect x="{x}" y="{y}" width="552" height="128" rx="12" fill="#ffffff" stroke="#cbd5e1"/>',
+                    f'  <text x="{x + 16}" y="{y + 25}" fill="#334155" font-family="ui-sans-serif, system-ui, sans-serif" font-size="17" font-weight="700">{chart_text(title)}</text>',
                 ]
             )
             for arm_index, (arm_label, value, color) in enumerate(
@@ -1725,14 +1726,14 @@ def render_benchmark_chart(summary: dict) -> str:
                     ("With skill", values[1], "#0f766e"),
                 )
             ):
-                label_y = y + 58 + arm_index * 52
+                label_y = y + 50 + arm_index * 43
                 bar_y = label_y + 10
-                bar_width = max(0.0, min(248.0, 248.0 * float(value) / scale))
+                bar_width = max(0.0, min(520.0, 520.0 * float(value) / scale))
                 lines.extend(
                     [
-                        f'  <text x="{x + 16}" y="{label_y}" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">{arm_label}</text>',
-                        f'  <text x="{x + 264}" y="{label_y}" text-anchor="end" fill="#0f172a" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" font-weight="700">{chart_text(formatter(value))}</text>',
-                        f'  <rect x="{x + 16}" y="{bar_y}" width="248" height="12" rx="6" fill="#e2e8f0"/>',
+                        f'  <text x="{x + 16}" y="{label_y}" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">{arm_label}</text>',
+                        f'  <text x="{x + 536}" y="{label_y}" text-anchor="end" fill="#0f172a" font-family="ui-monospace, SFMono-Regular, monospace" font-size="13" font-weight="700">{chart_text(formatter(value))}</text>',
+                        f'  <rect x="{x + 16}" y="{bar_y}" width="520" height="12" rx="6" fill="#e2e8f0"/>',
                         f'  <rect x="{x + 16}" y="{bar_y}" width="{bar_width:.2f}" height="12" rx="6" fill="{color}"/>',
                     ]
                 )
@@ -1742,7 +1743,7 @@ def render_benchmark_chart(summary: dict) -> str:
 
 def render_unmeasured_chart() -> str:
     lines = [
-        '<svg xmlns="http://www.w3.org/2000/svg" width="960" height="280" viewBox="0 0 960 280" role="img" aria-labelledby="title desc">',
+        '<svg xmlns="http://www.w3.org/2000/svg" width="600" height="504" viewBox="0 0 600 504" role="img" aria-labelledby="title desc">',
         '  <title id="title">Benchmark not measured</title>',
         '  <desc id="desc">No reproducible without skill and with skill comparison has been published.</desc>',
         '  <rect width="100%" height="100%" rx="18" fill="#f8fafc"/>',
@@ -1750,17 +1751,18 @@ def render_unmeasured_chart() -> str:
         '  <text x="32" y="68" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14">Run the committed benchmark to compare without skill and with skill.</text>',
     ]
     for index, title in enumerate(("Time", "Accomplishment rate", "Tokens")):
-        x = 32 + index * 300
+        x = 24
+        y = 88 + index * 136
         lines.extend(
             [
-                f'  <rect x="{x}" y="96" width="280" height="148" rx="12" fill="#ffffff" stroke="#cbd5e1"/>',
-                f'  <text x="{x + 16}" y="128" fill="#334155" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14" font-weight="700">{title}</text>',
-                f'  <text x="{x + 16}" y="166" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">Without skill</text>',
-                f'  <text x="{x + 264}" y="166" text-anchor="end" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="14">—</text>',
-                f'  <line x1="{x + 16}" y1="178" x2="{x + 264}" y2="178" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" stroke-dasharray="2 18"/>',
-                f'  <text x="{x + 16}" y="210" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">With skill</text>',
-                f'  <text x="{x + 264}" y="210" text-anchor="end" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="14">—</text>',
-                f'  <line x1="{x + 16}" y1="222" x2="{x + 264}" y2="222" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" stroke-dasharray="2 18"/>',
+                f'  <rect x="{x}" y="{y}" width="552" height="120" rx="12" fill="#ffffff" stroke="#cbd5e1"/>',
+                f'  <text x="{x + 16}" y="{y + 25}" fill="#334155" font-family="ui-sans-serif, system-ui, sans-serif" font-size="17" font-weight="700">{title}</text>',
+                f'  <text x="{x + 16}" y="{y + 50}" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">Without skill</text>',
+                f'  <text x="{x + 536}" y="{y + 50}" text-anchor="end" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="14">—</text>',
+                f'  <line x1="{x + 16}" y1="{y + 60}" x2="{x + 536}" y2="{y + 60}" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" stroke-dasharray="2 18"/>',
+                f'  <text x="{x + 16}" y="{y + 93}" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">With skill</text>',
+                f'  <text x="{x + 536}" y="{y + 93}" text-anchor="end" fill="#64748b" font-family="ui-monospace, SFMono-Regular, monospace" font-size="14">—</text>',
+                f'  <line x1="{x + 16}" y1="{y + 103}" x2="{x + 536}" y2="{y + 103}" stroke="#cbd5e1" stroke-width="12" stroke-linecap="round" stroke-dasharray="2 18"/>',
             ]
         )
     lines.append("</svg>")
