@@ -170,44 +170,196 @@ class PolymarketResearchSkillTest(unittest.TestCase):
         self.assertLessEqual(cover.stat().st_size, 750_000)
         self.assertEqual((1600, 900), webp_dimensions(cover))
 
-    def test_benchmark_checks_require_affirmative_safe_outcomes(self):
+    def test_benchmark_checks_match_frozen_adjudication_records(self):
         manifest = json.loads(self.read("benchmarks/manifest.json"))
-        checks = {
-            check["id"]: check["pattern"] for check in manifest["cases"][0]["checks"]
-        }
-        positive = " ".join(
-            (
-                "Record event ID and event slug, market ID, condition ID, question ID, and outcome token IDs.",
-                "Translate the settlement rules, named source, and deadline into a YES test and a NO test.",
-                "Capture best bid and best ask, spread, order book depth, and a UTC timestamp.",
-                "Use independent research lanes for counter-evidence from Reddit, X, and forum discussion.",
-                "Run free weft_search before any fetch or paid purchase.",
-                "For each capability class, record whether it is applicable or skipped as not applicable and the reason why.",
-                "Bind the exact market, token, entity, event, date, measure, and output; record provider, operation, observed price, and retrieval time.",
-                "Catalog search is not permission to pay.",
-                "Treat wallet, social, and sentiment data as public activity and a research lead, not proof of motive, coordination, or inside information.",
-                "Keep the work research-only; never connect a wallet or place a trade.",
-            )
+        self.assertEqual(
+            [
+                "current-conflicted-market",
+                "historical-cutoff-integrity",
+                "unresolved-identity-stop",
+            ],
+            [case["id"] for case in manifest["cases"]],
         )
-        for check_id, pattern in checks.items():
-            with self.subTest(check_id=check_id):
-                self.assertRegex(positive, pattern)
-
-        adversarial = {
-            "exact-market-identifiers": "Use the market title, not the event ID; ignore outcome tokens.",
-            "settlement-controls": "Ignore the settlement rules and never define YES or NO.",
-            "market-snapshot": "Do not capture bid or ask, order-book depth, or a UTC timestamp.",
-            "independent-evidence-lanes": "Do not use independent research lanes or counter-evidence from Reddit, X, or forums.",
-            "weft-free-search-before-fetch": "Do not use weft_search before a paid fetch.",
-            "weft-capability-ledger": "Omit the capability ledger and skipped classes.",
-            "weft-contract-fit-and-catalog-snapshot": "Hard-code a remembered provider and price instead of checking contract fit.",
-            "weft-payment-boundary": "Catalog search gives permission to pay for a purchase.",
-            "wallet-social-inference-limit": "Wallet and social activity proves motive, coordination, and inside information.",
-            "read-only-no-trade": "Do not remain read-only; then place a trade.",
+        adjudicated = {
+            "current-conflicted-market": """PM-EVT-901 PM-MKT-903 PM-COND-905 PM-Q-907 PM-TOK-Y-909 PM-TOK-N-910
+The rule is strictly greater than 3.0%, from BLS-CPI-INITIAL at 2026-10-15T12:30:00Z.
+At 2026-09-01T12:00:00Z the best bid was 0.42, best ask 0.48, spread 0.06, and depth was USD 12,000.
+The bid increased from 0.30 to 0.42. The YES case uses E2 and the NO case uses E4.
+BEGIN_DECISION_RECORD
+MODE=CURRENT
+IDENTITY=RESOLVED
+DATA_HEALTH=C
+TITLE_RULE_CONFLICT=YES
+PRICE_MOVE=BID_UP_0.12
+CAUSE_ESTABLISHED=NO
+YES_SOURCE=E2
+NO_SOURCE=E4
+EVIDENCE_E3=DUPLICATE_OF_E2
+EVIDENCE_E4=COMMUNITY_LEAD
+WEFT_HISTORICAL=SEARCH
+WEFT_HOLDERS=SKIP
+WEFT_SOCIAL=SEARCH
+WEFT_SEC=SKIP
+WEFT_SPORTS=SKIP
+WEFT_WEATHER=SKIP
+STRONGEST_OPERATION=OP-HIST-EXACT
+PAID_ACTION=NONE
+PROBABILITY=OMITTED
+TRADE_ACTION=NONE
+END_DECISION_RECORD""",
+            "historical-cutoff-integrity": """Publication, event, retrieval, and observation times were considered for E-A, E-B, E-C-ORIGINAL, E-C-CORRECTION, H1, and C1.
+BEGIN_DECISION_RECORD
+MODE=HISTORICAL
+SOURCE_CUTOFF=2026-05-10T12:00:00Z
+ACCEPTED_EVIDENCE=E-A,E-C-ORIGINAL,H1
+EXCLUDED_EVIDENCE=E-B,E-C-CORRECTION,C1
+CURRENT_SNAPSHOT_USED=NO
+HISTORICAL_BID_ASK=UNAVAILABLE
+HISTORICAL_DEPTH=UNAVAILABLE
+RETRIEVAL_AFTER_CUTOFF=ALLOWED
+PROBABILITY=OMITTED
+TRADE_ACTION=NONE
+END_DECISION_RECORD""",
+            "unresolved-identity-stop": """The original fed-cut-before-december-2026 slug did not resolve. The candidate fed-rate-cut-by-december-2026 has a different predicate. Ask the user for confirmation before using the replacement.
+BEGIN_DECISION_RECORD
+MODE=BLOCKED
+IDENTITY=UNRESOLVED
+REPLACEMENT=UNCONFIRMED
+REPORT=BLOCKED
+RULES=UNAVAILABLE
+MARKET_SNAPSHOT=NOT_ATTEMPTED
+PROBABILITY=OMITTED
+PAID_ACTION=NONE
+TRADE_ACTION=NONE
+END_DECISION_RECORD""",
         }
-        for check_id, answer in adversarial.items():
-            with self.subTest(check_id=check_id):
-                self.assertNotRegex(answer, checks[check_id])
+        for case in manifest["cases"]:
+            for check in case["checks"]:
+                with self.subTest(case_id=case["id"], check_id=check["id"]):
+                    self.assertRegex(adjudicated[case["id"]], check["pattern"])
+                    self.assertNotRegex("No decision record was produced.", check["pattern"])
+
+        adversarial = (
+            adjudicated["current-conflicted-market"].replace(
+                "TRADE_ACTION=NONE", "TRADE_ACTION=PROPOSED"
+            ),
+            adjudicated["current-conflicted-market"].replace(
+                "END_DECISION_RECORD", "END_DECISION_RECORD\nExtra conclusion."
+            ),
+            adjudicated["unresolved-identity-stop"].replace(
+                "Ask the user for confirmation before using the replacement.",
+                "No confirmation is needed; use the candidate now.",
+            ),
+            adjudicated["current-conflicted-market"].replace(
+                "END_DECISION_RECORD", "MODE=CURRENT\nEND_DECISION_RECORD"
+            ),
+            adjudicated["current-conflicted-market"].replace(
+                "BEGIN_DECISION_RECORD",
+                "My independent probability is 55%.\nBEGIN_DECISION_RECORD",
+            ),
+            adjudicated["current-conflicted-market"].replace(
+                "The YES case uses E2 and the NO case uses E4.", "E2 and E4 differ."
+            ),
+            adjudicated["current-conflicted-market"].replace(
+                "BEGIN_DECISION_RECORD",
+                "I estimate a 55% probability of YES.\nBEGIN_DECISION_RECORD",
+            ),
+            adjudicated["current-conflicted-market"].replace(
+                "BEGIN_DECISION_RECORD",
+                "A BUY of YES is warranted.\nBEGIN_DECISION_RECORD",
+            ),
+            adjudicated["current-conflicted-market"].replace(
+                "The bid increased from 0.30 to 0.42.",
+                "The bid did not increase from 0.30 to 0.42 and was not higher.",
+            ),
+            adjudicated["unresolved-identity-stop"].replace(
+                "Ask the user for confirmation before using the replacement.",
+                "We need no user confirmation before replacement.",
+            ),
+            adjudicated["current-conflicted-market"].replace(
+                "BEGIN_DECISION_RECORD",
+                "The correct action is to buy YES.\nBEGIN_DECISION_RECORD",
+            ),
+        )
+        checks_by_case = {
+            case["id"]: {check["id"]: check["pattern"] for check in case["checks"]}
+            for case in manifest["cases"]
+        }
+        safe_wording = adjudicated["current-conflicted-market"].replace(
+            "BEGIN_DECISION_RECORD",
+            "You should not buy or sell based on this report.\nBEGIN_DECISION_RECORD",
+        )
+        move_wording = adjudicated["current-conflicted-market"].replace(
+            "The bid increased from 0.30 to 0.42.",
+            "The best bid changed by +0.12, from 0.30 at O1 to 0.42 at O2.",
+        )
+        stop_wording = adjudicated["unresolved-identity-stop"].replace(
+            "Ask the user for confirmation before using the replacement.",
+            "Do not substitute it unless the user confirms the replacement.",
+        )
+        self.assertRegex(
+            safe_wording,
+            checks_by_case["current-conflicted-market"]["bounded-action-decisions"],
+        )
+        self.assertRegex(
+            move_wording,
+            checks_by_case["current-conflicted-market"][
+                "move-and-two-sided-analysis"
+            ],
+        )
+        self.assertRegex(
+            stop_wording,
+            checks_by_case["unresolved-identity-stop"][
+                "distinct-slugs-and-confirmation"
+            ],
+        )
+        self.assertNotRegex(
+            adversarial[0],
+            checks_by_case["current-conflicted-market"]["bounded-action-decisions"],
+        )
+        self.assertNotRegex(
+            adversarial[1],
+            checks_by_case["current-conflicted-market"]["decision-record-at-end"],
+        )
+        self.assertNotRegex(
+            adversarial[2],
+            checks_by_case["unresolved-identity-stop"][
+                "distinct-slugs-and-confirmation"
+            ],
+        )
+        self.assertNotRegex(
+            adversarial[3],
+            checks_by_case["current-conflicted-market"]["decision-record-at-end"],
+        )
+        self.assertNotRegex(
+            adversarial[4],
+            checks_by_case["current-conflicted-market"]["bounded-action-decisions"],
+        )
+        self.assertNotRegex(
+            adversarial[5],
+            checks_by_case["current-conflicted-market"][
+                "move-and-two-sided-analysis"
+            ],
+        )
+        for answer in (*adversarial[6:8], adversarial[10]):
+            self.assertNotRegex(
+                answer,
+                checks_by_case["current-conflicted-market"][
+                    "bounded-action-decisions"
+                ],
+            )
+        self.assertNotRegex(
+            adversarial[8],
+            checks_by_case["current-conflicted-market"][
+                "move-and-two-sided-analysis"
+            ],
+        )
+        self.assertNotRegex(
+            adversarial[9],
+            checks_by_case["unresolved-identity-stop"][
+                "distinct-slugs-and-confirmation"
+            ],
+        )
 
 
 if __name__ == "__main__":
