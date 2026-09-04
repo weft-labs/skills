@@ -22,14 +22,14 @@ each consumer's `SKILLS_REF` and re-vendor.
 ## Install
 
 ```sh
-npx skills add weft-labs/skills --skill weft --skill weft-setup
+npx skills add weftlabs/skills --skill weft --skill weft-setup
 ```
 
 Install an optional workflow separately:
 
 ```sh
-npx skills add weft-labs/skills --skill weft-flights-search
-npx skills add weft-labs/skills --skill weft-gtm-lead-enrichment
+npx skills add weftlabs/skills --skill weft-flights-search
+npx skills add weftlabs/skills --skill weft-gtm-lead-enrichment
 ```
 
 Use the space-separated `--skill <name>` form. Do not use
@@ -51,7 +51,7 @@ Or point an agent at the hosted copies:
 | Mirror | Mechanism |
 |---|---|
 | `weft.network/setup.md` + `/skills/weft/SKILL.md` | vendored into `weft-app` at its `SKILLS_REF` commit, drift-checked in its CI |
-| Claude plugin `weft-labs/weft-claude-plugin` | vendors `skills/weft/` at its `SKILLS_REF` commit, drift-checked in its CI |
+| Claude plugin `weftlabs/weft-claude-plugin` | vendors `skills/weft/` at its `SKILLS_REF` commit, drift-checked in its CI |
 | `@weft-labs/cli` npm package | bundles `skills/weft/` at its `SKILLS_REF` commit, drift-checked in its CI |
 
 ## License

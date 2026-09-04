@@ -35,7 +35,7 @@ surface decides, and every branch ends in the same OAuth grant.
    and this skill set.
 
    ```
-   /plugin marketplace add weft-labs/weft-claude-plugin
+   /plugin marketplace add weftlabs/weft-claude-plugin
    /plugin install weft@weft-labs
    ```
 
