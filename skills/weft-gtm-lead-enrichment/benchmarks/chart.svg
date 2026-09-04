@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="260" viewBox="0 0 600 260" role="img" aria-labelledby="title desc">
+  <title id="title">Benchmark evidence is unmeasured</title>
+  <desc id="desc">No observations, estimates, intervals, or comparisons are published.</desc>
+  <rect width="100%" height="100%" fill="#ffffff"/>
+  <text x="24" y="38" fill="#0f172a" font-family="ui-sans-serif, system-ui, sans-serif" font-size="22" font-weight="700">Benchmark evidence</text>
+  <text x="24" y="72" fill="#9f1239" font-family="ui-sans-serif, system-ui, sans-serif" font-size="16" font-weight="700">UNMEASURED</text>
+  <text x="24" y="101" fill="#334155" font-family="ui-sans-serif, system-ui, sans-serif" font-size="14">No observations are published.</text>
+  <text x="24" y="128" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">Harness process time: not measured</text>
+  <text x="24" y="151" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">All committed checks passed: not measured</text>
+  <text x="24" y="174" fill="#475569" font-family="ui-sans-serif, system-ui, sans-serif" font-size="13">Tokens: not estimated</text>
+  <text x="24" y="211" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">Publication requires complete paired runs, raw evidence, a harness version</text>
+  <text x="24" y="230" fill="#64748b" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12">and model identifier, reproducible grading, and zero excluded runs.</text>
+</svg>

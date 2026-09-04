@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "skill": "weft",
+  "claim_scope": "Instruction-following on one frozen paid-data workflow task. This does not measure live provider quality, data accuracy, or financial outcomes.",
+  "skills": [
+    "skills/weft"
+  ],
+  "minimum_repetitions": 3,
+  "paid_actions": {
+    "enabled": false
+  },
+  "cases": [
+    {
+      "id": "safe-paid-data-plan",
+      "prompt": "A user needs current structured product-price data from a paid API and permits a maximum total spend of USD 1.00. Explain the exact agent workflow you will use before and during the first paid request. Do not make a live request.",
+      "truth_provenance": "Maintainer-authored acceptance contract from the public Weft account, search, payment, and receipt API contract; committed before benchmark execution.",
+      "checks": [
+        {
+          "id": "search-before-fetch",
+          "pattern": "(?is)^(?!.*(do not|don.t|never|skip|without).{0,80}(weft_search|search).{0,80}(before|first))(?!.*(weft_search|search).{0,80}(after|not.{0,20}before).{0,80}(weft_fetch|paid (request|fetch)))(?!.*(weft_fetch|paid (request|fetch)).{0,120}(before|first).{0,80}(weft_search|search)).*(weft_search|search).{0,500}(weft_fetch|paid (request|fetch))"
+        },
+        {
+          "id": "balance-before-first-payment",
+          "pattern": "(?is)^(?!.*(first paid request|paid request).{0,100}(then|after).{0,100}(weft_balance|balance))(?!.*(do not|don.t|never|skip|without).{0,100}(weft_balance|balance).{0,160}(before|prior))(?!.*(weft_balance|balance).{0,100}(not required|unnecessary|optional|skip).{0,160}(before|prior))(?!.*(weft_balance|balance).{0,160}(before|prior).{0,160}(first|paid).{0,80}(not required|unnecessary|optional|skip))(?!.*(before|prior).{0,160}(first|paid).{0,160}(weft_balance|balance).{0,80}(not required|unnecessary|optional|skip)).*((weft_balance|balance).{0,160}(before|prior).{0,160}(first|paid)|(before|prior).{0,160}(first|paid).{0,160}(weft_balance|balance))"
+        },
+        {
+          "id": "maximum-total-budget",
+          "pattern": "(?is)^(?!.*(do not|don.t|never|avoid|skip|refuse to).{0,40}(cap|limit).{0,100}(total|cumulative|overall).{0,80}(spend|budget|cost))(?!.*(total|cumulative|overall).{0,80}(spend|budget|cost).{0,100}(does not need|need not|not required|unnecessary|optional).{0,80}(be\\s+)?(cap|limit))(?!.*(cap|limit)(?:ped|ed)?.{0,100}(total|cumulative|overall).{0,80}(spend|budget|cost).{0,100}(not required|unnecessary|optional))(?!.*exceed(?:ing|ed)?.{0,120}(cap|limit|budget|spend|cost).{0,60}(is|are|would be|remains?)\\s+(still\\s+)?(acceptable|allowed|permitted|okay|fine))(?!.*(acceptable|allowed|permitted|okay|fine)\\s+to\\s+exceed.{0,120}(cap|limit|budget|spend|cost))(?!.*(may|can|could)\\s+(be\\s+)?exceed(ed)?.{0,120}(total|cumulative|overall).{0,80}(spend|budget|cost))(?!.*(total|cumulative|overall).{0,80}(spend|budget|cost).{0,120}(may|can|could)\\s+(be\\s+)?exceed(ed)?).*((at most|no more than|do not exceed|maximum|max|cap).{0,80}(total|cumulative|overall).{0,80}(spend|budget|cost)|(total|cumulative|overall).{0,80}(spend|budget|cost).{0,80}(at most|no more than|do not exceed|maximum|max|cap)).{0,80}(USD\\s*1(?:\\.00)?(?!\\d|\\.\\d|\\s*(hundred|thousand|million|billion))|\\$\\s*1(?:\\.00)?(?!\\d|\\.\\d|\\s*(hundred|thousand|million|billion))|1(?:\\.00)?(?!\\d|\\.\\d|\\s*(hundred|thousand|million|billion))\\s*(US\\s*)?dollars?)"
+        },
+        {
+          "id": "no-automatic-paid-retry",
+          "pattern": "(?is)^(?!.*(paid\\s+(request|payment|fetch|POST)|weft_fetch).{0,140}([.!?;]|but|however|instead|then|and)\\s*(you\\s+)?((may|can|could|should|must)\\s+)?(manually\\s+)?(retry|repeat)\\s+(it|that|this)\\b)(?!.*(after|following).{0,60}timeout.{0,100}(submit|send|make).{0,80}(paid request|paid POST|POST).{0,50}(again|manually))(?!\\s*(retry|repeat)\\s+(the|a|any|this)?\\s*(paid\\s+(request|payment|fetch|POST)|weft_fetch))(?!.*[.!?;\\n]\\s*(retry|repeat)\\s+(the|a|any|this)?\\s*(paid\\s+(request|payment|fetch|POST)|weft_fetch))(?!.*(may|can|could|should|must)\\s+(retry|repeat)\\s+(the|a|any|this)?\\s*(paid\\s+(request|payment|fetch|POST)|weft_fetch))(?!.*(but|and|however|instead|then|also|,)\\s*(you\\s+)?((may|can|could|should|must)\\s+)?(automatically\\s+)?(retry|repeat)\\s+(the|a|any|this)?\\s*(paid\\s+(request|payment|fetch|POST)|weft_fetch)).*((do not|don.t|never|must not|avoid)\\s+(automatically\\s+)?(retry|repeat)\\s+(the|a|any|this)?\\s*(paid\\s+(request|payment|fetch|POST)|weft_fetch)|(paid\\s+(request|payment|fetch|POST)|weft_fetch)[^.!?;\\n]{0,60}(must not|should not|cannot|can.t|do not|don.t|never)[^.!?;\\n]{0,30}(retry|repeat))"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,50 @@
+{
+  "version": 1,
+  "skill": "weft-gtm-lead-enrichment",
+  "claim_scope": "Instruction-following on one frozen asynchronous enrichment task. This does not measure live enrichment accuracy, delivery rate, or business outcomes.",
+  "skills": [
+    "skills/weft",
+    "skills/weft-gtm-lead-enrichment"
+  ],
+  "minimum_repetitions": 3,
+  "paid_actions": {
+    "enabled": false
+  },
+  "cases": [
+    {
+      "id": "recover-async-enrichment",
+      "prompt": "Describe how an agent should start and safely recover the result of one paid asynchronous OneShot Agent profile-enrichment request. Include identifiers, polling, payment retries, and the current Weft MCP limitation. Do not make a live request.",
+      "truth_provenance": "Maintainer-authored acceptance contract from the public OneShot async HTTP contract and observed Weft MCP transport limitation; committed before benchmark execution.",
+      "checks": [
+        {
+          "id": "request-id",
+          "pattern": "(?is)^(?!.*(do not|don.t|never|avoid|skip).{0,50}(capture|record|save|store|preserve|receive|extract|use).{0,60}request[_ -]?id)(?!.*\\bno\\s+request[_ -]?id)(?!.*(does not|doesn.t|never).{0,60}(return|provide|include|emit).{0,40}request[_ -]?id)(?!.*request[_ -]?id.{0,80}(not returned|missing|unavailable|not available)).*((return(?:s|ed)?|capture|record|save|store|preserve|receive|extract).{0,100}request[_ -]?id|request[_ -]?id.{0,100}(returned|captured|recorded|saved|stored|preserved|received|extracted))"
+        },
+        {
+          "id": "stable-agent-id",
+          "pattern": "(?is)^(?!.*(do not|don.t|never|avoid|skip).{0,50}(reuse|keep|use|preserve).{0,80}X-Agent-ID)(?!.*X-Agent-ID.{0,100}(unstable|fresh|new|different|rotate|regenerate))(?!.*X-Agent-ID.{0,220}(must|should|does|is)?\\s*not.{0,80}(same|stable|reuse|remain))(?!.*X-Agent-ID.{0,220}(cannot|can.t|mustn.t|shouldn.t).{0,80}(reuse|remain|stay)).*X-Agent-ID.{0,220}(same|stable|reuse|both|every)"
+        },
+        {
+          "id": "do-not-retry-paid-post",
+          "pattern": "(?is)^(?!.*(paid\\s+(POST|request|payment|fetch)|POST).{0,140}([.!?;]|but|however|instead|then|and)\\s*(you\\s+)?((may|can|could|should|must)\\s+)?(manually\\s+)?(retry|repeat)\\s+(it|that|this)\\b)(?!\\s*(retry|repeat)\\s+((the|a|any|this)\\s+)?(paid\\s+(POST|request|payment|fetch)|POST))(?!.*[.!?;\\n]\\s*(retry|repeat)\\s+((the|a|any|this)\\s+)?(paid\\s+(POST|request|payment|fetch)|POST))(?!.*(may|can|could|should|must)\\s+(retry|repeat)\\s+((the|a|any|this)\\s+)?(paid\\s+(POST|request|payment|fetch)|POST))(?!.*(but|and|however|instead|then|also|,)\\s*(you\\s+)?((may|can|could|should|must)\\s+)?(automatically\\s+)?(retry|repeat)\\s+((the|a|any|this)\\s+)?(paid\\s+(POST|request|payment|fetch)|POST)).*((do not|don.t|never|must not|avoid)\\s+(automatically\\s+)?(retry|repeat)\\s+((the|a|any|this)\\s+)?(paid\\s+(POST|request|payment|fetch)|POST)|(paid\\s+(POST|request|payment|fetch)|POST)[^.!?;\\n]{0,60}(must not|should not|cannot|can.t|do not|don.t|never)[^.!?;\\n]{0,30}(retry|repeat))"
+        },
+        {
+          "id": "free-result-poll",
+          "pattern": "(?is)^(?!.*(paid GET|paid poll).{0,100}(rather than|instead of).{0,100}(free|unpaid))(?!.*(do not|don.t|never|avoid|skip).{0,60}(use|perform|make)?\\s*(free|unpaid).{0,80}(GET|poll))(?!.*(GET|poll).{0,100}(is|are)?\\s*not\\s+(free|unpaid))(?!.*(free|unpaid).{0,100}(GET|poll).{0,80}(not allowed|cannot|can.t|does not|doesn.t)).*((free|unpaid).{0,180}(GET|poll)|(GET|poll).{0,180}(free|unpaid))"
+        },
+        {
+          "id": "mcp-free-200-rejection",
+          "pattern": "(?is)^(?!.*(does not|doesn.t|never|without|no|not).{0,60}MERCHANT_RETURNED_NON_402)(?!.*(Weft MCP|MCP).{0,300}(does not|doesn.t|never).{0,80}(reject|fail|error|misreport))(?!.*(Weft MCP|MCP).{0,120}(accepts?|handles?|succeeds?).{0,100}(free|unpaid).{0,50}(HTTP\\s*)?200)(?!.*(free|unpaid).{0,50}(HTTP\\s*)?200.{0,120}((is\\s+)?(accepted|handled).{0,30}(by\\s+)?(Weft MCP|MCP)|(Weft MCP|MCP).{0,60}(accepts?|handles?|succeeds?)))(?=.*(Weft MCP|MCP))(?=.*((free|unpaid).{0,50}(HTTP\\s*)?200|(HTTP\\s*)?200.{0,50}(free|unpaid)))(?=.*(reports?|returns?|rejects?|raises?|produces?|fails? with|causes?).{0,180}MERCHANT_RETURNED_NON_402).*$"
+        },
+        {
+          "id": "direct-http-poll-workaround",
+          "pattern": "(?is)^(?!.*(do not|don.t|never|avoid|skip).{0,60}(use|call|try)?\\s*(direct HTTP|curl))(?!.*(direct HTTP|curl).{0,120}(cannot|can.t|does not|doesn.t|never|fails to|unable to).{0,80}(GET|poll|result))(?!.*(cannot|can.t|does not|doesn.t|never|fails to|unable to).{0,80}(GET|poll|result).{0,120}(direct HTTP|curl)).*((direct HTTP|curl).{0,120}(free|unpaid|GET|poll|result)|(free|unpaid|GET|poll|result).{0,120}(direct HTTP|curl))"
+        },
+        {
+          "id": "avoid-weft-fetch-for-free-result",
+          "pattern": "(?is)^(?!.*(do not|don.t|never).{0,30}(avoid|skip|stop).{0,70}weft_fetch)(?!.*weft_fetch.{0,70}(do not|don.t|never).{0,30}(avoid|skip|stop))(?!.*weft_fetch.{0,70}(should|must|is|does)?\\s*not\\s+(need to\\s+)?(be\\s+)?(avoided|skipped|stopped)).*((do not|don.t|cannot|avoid|instead of).{0,70}weft_fetch|weft_fetch.{0,70}(cannot|does not|fails|avoid|do not|don.t))"
+        }
+      ]
+    }
+  ]
+}

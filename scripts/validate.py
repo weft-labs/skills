@@ -1,12 +1,23 @@
 #!/usr/bin/env python3
 """Validate skill frontmatter (real YAML, not line positions) and local links."""
 
+import json
 import pathlib
 import re
 import struct
 import sys
 
 import yaml
+
+from benchmark import (
+    BENCHMARK_CHART_PATH,
+    load_manifest,
+    render_benchmark_block,
+    render_benchmark_chart,
+    render_unmeasured_chart,
+    verify_case_minimums,
+    verify_publication,
+)
 
 root = pathlib.Path(__file__).resolve().parent.parent
 errors = []
@@ -55,7 +66,7 @@ if not skill_files:
 
 for path in skill_files:
     rel = path.relative_to(root)
-    text = path.read_text()
+    text = path.read_text(encoding="utf-8")
     match = re.match(r"\A---\n(.*?)\n---\n", text, re.S)
     if not match:
         errors.append(f"{rel}: missing YAML frontmatter block")
@@ -133,6 +144,130 @@ for path in skill_files:
                             errors.append(f"{entry}: title must be a non-empty string of at most 60 characters")
                         if not isinstance(body, str) or not body.strip() or len(body) > 800:
                             errors.append(f"{entry}: prompt must be a non-empty string of at most 800 characters")
+    readme = path.parent / "README.md"
+    if not readme.is_file():
+        errors.append(f"{readme.relative_to(root)}: missing skill README")
+    else:
+        readme_text = readme.read_text(encoding="utf-8")
+        start = "<!-- weft-benchmark:start -->"
+        end = "<!-- weft-benchmark:end -->"
+        if readme_text.count(start) != 1 or readme_text.count(end) != 1:
+            errors.append(
+                f"{readme.relative_to(root)}: benchmark markers must occur exactly once"
+            )
+        elif readme_text.index(start) > readme_text.index(end):
+            errors.append(f"{readme.relative_to(root)}: benchmark markers are reversed")
+        else:
+            block = readme_text.split(start, 1)[1].split(end, 1)[0]
+            chart = re.search(r"!\[Benchmark (?:chart|status)\]\(([^)]+)\)", block)
+            chart_path = None
+            if not chart:
+                errors.append(
+                    f"{readme.relative_to(root)}: benchmark has no chart image"
+                )
+            elif chart.group(1) != BENCHMARK_CHART_PATH:
+                errors.append(
+                    f"{readme.relative_to(root)}: benchmark chart must use `{BENCHMARK_CHART_PATH}`"
+                )
+            else:
+                chart_path = readme.parent / BENCHMARK_CHART_PATH
+            measured = all(
+                term in block
+                for term in (
+                    "Harness process time",
+                    "All committed checks passed",
+                    "Tokens",
+                    "Raw benchmark evidence",
+                )
+            )
+            unmeasured = "Status: Unmeasured" in block
+            if measured == unmeasured:
+                errors.append(
+                    f"{readme.relative_to(root)}: benchmark must be either measured with evidence or explicitly unmeasured"
+                )
+            elif measured:
+                evidence = re.search(r"\[Raw benchmark evidence\]\(([^)]+)\)", block)
+                if not evidence:
+                    errors.append(
+                        f"{readme.relative_to(root)}: measured benchmark has no raw evidence link"
+                    )
+                else:
+                    raw_path = (readme.parent / evidence.group(1)).resolve()
+                    try:
+                        raw_path.relative_to(readme.parent.resolve())
+                    except ValueError:
+                        errors.append(
+                            f"{readme.relative_to(root)}: raw benchmark evidence escapes the skill directory"
+                        )
+                    else:
+                        summary_path = raw_path.with_name("summary.json")
+                        try:
+                            raw = json.loads(raw_path.read_text(encoding="utf-8"))
+                            summary = json.loads(
+                                summary_path.read_text(encoding="utf-8")
+                            )
+                            manifest_payload = load_manifest(
+                                path.parent / "benchmarks" / "manifest.json", root
+                            )
+                            verify_publication(
+                                summary,
+                                raw,
+                                manifest_payload,
+                                root,
+                                summary_path.parent,
+                            )
+                            verify_case_minimums(summary)
+                            expected = render_benchmark_block(
+                                summary, evidence.group(1)
+                            )
+                            if block.strip() != expected.strip():
+                                errors.append(
+                                    f"{readme.relative_to(root)}: measured benchmark block differs from evidence"
+                                )
+                            if chart_path is not None:
+                                expected_chart = render_benchmark_chart(summary, raw)
+                                try:
+                                    actual_chart = chart_path.read_text(
+                                        encoding="utf-8"
+                                    )
+                                except OSError as exc:
+                                    errors.append(
+                                        f"{chart_path.relative_to(root)}: missing benchmark chart: {exc}"
+                                    )
+                                else:
+                                    if actual_chart != expected_chart:
+                                        errors.append(
+                                            f"{chart_path.relative_to(root)}: measured chart differs from evidence"
+                                        )
+                        except (OSError, ValueError) as exc:
+                            errors.append(
+                                f"{readme.relative_to(root)}: invalid benchmark evidence: {exc}"
+                            )
+            elif unmeasured and chart_path is not None:
+                try:
+                    actual_chart = chart_path.read_text(encoding="utf-8")
+                except OSError as exc:
+                    errors.append(
+                        f"{chart_path.relative_to(root)}: missing benchmark chart: {exc}"
+                    )
+                else:
+                    if actual_chart != render_unmeasured_chart():
+                        errors.append(
+                            f"{chart_path.relative_to(root)}: unmeasured chart is stale"
+                        )
+
+    manifest = path.parent / "benchmarks" / "manifest.json"
+    if not manifest.is_file():
+        errors.append(f"{manifest.relative_to(root)}: missing benchmark manifest")
+    else:
+        try:
+            payload = load_manifest(manifest, root)
+            if payload["skill"] != path.parent.name:
+                errors.append(
+                    f"{manifest.relative_to(root)}: skill `{payload['skill']}` != directory `{path.parent.name}`"
+                )
+        except ValueError as exc:
+            errors.append(f"{manifest.relative_to(root)}: {exc}")
 
 # Safety-content invariants: these phrases are load-bearing (spending
 # safety, secret handling). A rewrite that drops one is a regression, not
@@ -162,7 +297,7 @@ REQUIRED_CONTENT = {
     ],
 }
 for rel, phrases in REQUIRED_CONTENT.items():
-    text = (root / rel).read_text()
+    text = (root / rel).read_text(encoding="utf-8")
     for phrase in phrases:
         if phrase.lower() not in text.lower():
             errors.append(f"{rel}: required safety phrase missing: `{phrase}`")
@@ -170,7 +305,11 @@ for rel, phrases in REQUIRED_CONTENT.items():
 # Relative links in every markdown file must resolve.
 for path in sorted(root.glob("skills/**/*.md")):
     rel = path.relative_to(root)
-    for target in re.findall(r"\]\(([^)#]+?)(?:#[^)]*)?\)", path.read_text()):
+    if "benchmarks" in rel.parts and "results" in rel.parts:
+        continue
+    for target in re.findall(
+        r"\]\(([^)#]+?)(?:#[^)]*)?\)", path.read_text(encoding="utf-8")
+    ):
         if re.match(r"[a-z]+:", target):  # absolute URL
             continue
         if not (path.parent / target).resolve().exists():
