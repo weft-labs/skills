@@ -17,6 +17,4 @@ Create isolated work with the workspace worktree helper. Product changes use
 PRs based on `main`; native stack layers target their parent. Keep configured
 hooks enabled and required checks passing. Patrick owns the merge gate.
 
-README is the documentation map for this small repository; there is no docs
-collection to index. In a full Weft workspace, `../cto-os/` owns private plans
-and cross-repo rules. Do not assume that directory exists in a public clone.
+Start with README.md for setup, usage, and documentation.
