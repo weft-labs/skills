@@ -13,8 +13,8 @@ map, installation and distribution contract.
 
 ## Workflow and context
 
-Create isolated work with the workspace worktree helper. Product changes use
-PRs based on `main`; native stack layers target their parent. Keep configured
-hooks enabled and required checks passing. Patrick owns the merge gate.
+Use an isolated Git worktree for changes. Product changes use PRs based on
+`main`; native stack layers target their parent. Keep configured hooks enabled
+and required checks passing. Patrick owns the merge gate.
 
 Start with README.md for setup, usage, and documentation.
